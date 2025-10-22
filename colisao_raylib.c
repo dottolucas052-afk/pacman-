@@ -55,6 +55,15 @@ int main(){
         if(mapa[x][y] == 'o'){
             mapa[x][y] = ' ';
         }
+        if(mapa[x][y] == 'T'){
+            if(y == 0){
+                y = 28;
+            }
+            if(y == 29){
+                y = 1;
+            }
+        }
+        
 
         for(int i = 0; i<20; i++){
             
@@ -85,5 +94,6 @@ int main(){
     printf("%d %d", x, y);
 
     return 0;
+
 
 }
