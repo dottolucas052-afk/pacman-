@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include "raylib.h"
 
+typedef struct{
+    int linha;
+    int coluna;
+}posicao;
+
 int main(){
     FILE *arq;
     arq = fopen("C:\\Users\\dotto\\Downloads\\labirinto.txt", "r");
@@ -24,25 +29,46 @@ int main(){
             }
         }
     }
+
+    posicao portais[10];
+    int qnt_portais = 0;
+    for(int i = 0; i<20; i++){
+        for(int j = 0; j<40; j++){
+            if(mapa[i][j] == 'T'){
+                portais[qnt_portais].linha = i;
+                portais[qnt_portais].coluna = j; 
+                qnt_portais++;   
+            }
+        }
+    }
+
     InitWindow(800, 400, "pacman");
     SetTargetFPS(10);
-    
+    int dirx, diry;
     while(!WindowShouldClose()){
         int aux1 = x, aux2 = y;
         BeginDrawing();
         ClearBackground(WHITE);
         //movimento
-        if(IsKeypressed(KEY_UP)){
+        if(IsKeyDown(KEY_UP)){
             x--;
+            dirx = 0;
+            diry = 1;
         }
-        if(IsKeypressed(KEY_DOWN)){
+        if(IsKeyDown(KEY_DOWN)){
             x++;
+            dirx = 0;
+            diry = 1;
         }
-        if(IsKeypressed(KEY_RIGHT)){
+        if(IsKeyDown(KEY_RIGHT)){
             y++;
+            dirx = -1;
+            diry = 0;
         }
-        if(IsKeyPressed(KEY_LEFT)){
+        if(IsKeyDown(KEY_LEFT)){
             y--;
+            dirx  = -1;
+            diry = 0;
         }  
         //controle de colisão
         if(mapa[x][y] == '#'){
@@ -55,15 +81,24 @@ int main(){
         if(mapa[x][y] == 'o'){
             mapa[x][y] = ' ';
         }
+        //Teleporte
         if(mapa[x][y] == 'T'){
-            if(y == 0){
-                y = 28;
-            }
-            if(y == 29){
-                y = 1;
+            for(int i = 0; i< qnt_portais; i++){
+                if(!(x == portais[i].linha && y == portais[i].coluna)){
+                    if(x == portais[i].linha || y == portais[i].coluna){
+                        x = portais[i].linha ;
+                        y = portais[i].coluna ;
+                        if(y == 0){
+                            y++;
+                        }else{
+                            y--;
+                        }
+                        break;
+                    }
+         
+                }
             }
         }
-        
 
         for(int i = 0; i<20; i++){
             
@@ -91,9 +126,7 @@ int main(){
         EndDrawing();
     }
     CloseWindow();
-    printf("%d %d", x, y);
-
+    //printf("1 - %d %d  || 2 - %d %d ", portais[0].linha, portais[0].coluna, portais[1].linha, portais[1].coluna);
     return 0;
-
 
 }
