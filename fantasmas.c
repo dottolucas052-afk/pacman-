@@ -32,6 +32,7 @@ int main(){
             }
         }
     }
+    //-- definição dos fantasmas --
     int qnt_f = 0;
     for(int i = 0; i<20; i++){
         for(int j = 0; j<40; j++){
@@ -53,7 +54,7 @@ int main(){
             }
         }   
     }
-
+    //-- definição dos fantasmas --
     posicao portais[10];
     int qnt_portais = 0;
     for(int i = 0; i<20; i++){
@@ -99,60 +100,80 @@ int main(){
         if(mapa[x][y] == 'o'){
             mapa[x][y] = ' ';
         }
+        // -- movimento dos fantasmas --
         for(int i = 0; i< qnt_f; i++){
             int aux1 = fantasmas[i].linha, aux2 = fantasmas[i].coluna;
             int dx = 0, dy = 0;
-            int aleatorio = rand()%2;
-            if(aleatorio == 0){
+            int aleatorio = rand()%3;
+            if(aleatorio != 0){
                 if(rand() % 100 > 70){
-                if(x > fantasmas[i].linha){
-                    fantasmas[i].linha++;
-                }else if(x < fantasmas[i].linha){
-                    fantasmas[i].linha--;
+                    if(x > fantasmas[i].linha){
+                        fantasmas[i].linha++;
+                    }else if(x < fantasmas[i].linha){
+                        fantasmas[i].linha--;
+                    }
+                    if(y > fantasmas[i].coluna){
+                        fantasmas[i].coluna++;
+                    }else if(y < fantasmas[i].coluna){
+                        fantasmas[i].coluna--;
+                    }
                 }
-                if(y > fantasmas[i].coluna){
-                    fantasmas[i].coluna++;
-                }else if(y < fantasmas[i].coluna){
-                    fantasmas[i].coluna--;
-                }
-            }else{
-                int dir = rand() % 4;
-                if(dir == 0){
-                   fantasmas[i].linha++; 
-                }
-                if(dir == 1){
-                    fantasmas[i].linha--;
-                }
-                if(dir == 2){
-                    fantasmas[i].coluna++;
-                }
-                if(dir == 3){
-                    fantasmas[i].coluna--;
-                }
+                else{
+                    int dir = rand() % 4;
+                    if(dir == 0){
+                    fantasmas[i].linha++; 
+                    }
+                    if(dir == 1){
+                        fantasmas[i].linha--;
+                    }
+                    if(dir == 2){
+                        fantasmas[i].coluna++;
+                    }
+                    if(dir == 3){
+                        fantasmas[i].coluna--;
+                    }
 
-            } 
-        }   
+                } 
+            }      
             if(mapa[fantasmas[i].linha][fantasmas[i].coluna] == '#'){
                 fantasmas[i].coluna = aux2;
                 fantasmas[i].linha = aux1;
             }           
         
-            if(mapa[fantasmas[i].linha][fantasmas[i].coluna] == 'T'){
-                for(int i = 0; i< qnt_portais; i++){
-                    if(!(fantasmas[i].linha == portais[i].linha && fantasmas[i].coluna == portais[i].coluna)){
-                        if(fantasmas[i].linha == portais[i].linha ||fantasmas[i].coluna == portais[i].coluna){
-                            fantasmas[i].linha = portais[i].linha ;
-                            fantasmas[i].coluna = portais[i].coluna ;
-                            if(fantasmas[i].coluna == 0){
-                                fantasmas[i].coluna++;
-                            }else{
-                                fantasmas[i].coluna--;
-                            }
-                            break;
-                        }
+            // if(mapa[fantasmas[i].linha][fantasmas[i].coluna] == 'T'){
+            //     for(int k = 0; k< qnt_portais; k++){
+            //         if(!(fantasmas[k].linha == portais[k].linha && fantasmas[k].coluna == portais[k].coluna)){
+            //             if(fantasmas[k].linha == portais[k].linha ||fantasmas[k].coluna == portais[k].coluna){
+            //                 fantasmas[k].linha = portais[k].linha ;
+            //                 fantasmas[k].coluna = portais[k].coluna ;
+            //                 if(fantasmas[k].coluna == 0){
+            //                     fantasmas[k].coluna++;
+            //                 }else{
+            //                     fantasmas[k].coluna--;
+            //                 }
+            //                 break;
+            //             }
             
+            //         }
+            //     }                
+            // }
+            if (mapa[fantasmas[i].linha][fantasmas[i].coluna] == 'T') {
+                for (int k = 0; k < qnt_portais; k++) {
+                    
+                    if (!(fantasmas[i].linha == portais[k].linha && fantasmas[i].coluna == portais[k].coluna)) {
+                        
+                        fantasmas[i].linha = portais[k].linha;
+                        fantasmas[i].coluna = portais[k].coluna;
+
+                        
+                        if (fantasmas[i].coluna == 0)
+                            fantasmas[i].coluna++;
+                        else
+                            fantasmas[i].coluna--;
+
+                        break;
                     }
-                }                
+                }
             }
             
         }
