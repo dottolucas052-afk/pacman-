@@ -4,17 +4,19 @@ lista de afazeres:
 ** Velocidade
 
 -Fantasmas:
-() Fazer os fantasmas andarem
-() Colisão entre os fantasmas e o pacman
+(x) Fazer os fantasmas andarem
+() Colisão entre os fantasmas e o pacman -- leo
 () lidar exceções 
-() morte do pacman + Spawn + contagem de vidas
+(x) morte do pacman + Spawn Pacman
+() contagem de vidas
 
 - power pellets
-() Mudar de cor
-() Mudar de direção
-() tempo de efeito - tratar casos 
-() possibilidade do pacman comer fantasmas + pontuação
-() respawn dos fantasmas
+(x) Mudar de cor
+() Mudar de direção -- Ld
+(x) tempo de efeito - tratar casos 
+(x) possibilidade do pacman comer fantasmas
+() pontuação -- leo
+() respawn dos fantasmas 
 
 - Menu
 () tela inicial
@@ -26,6 +28,29 @@ lista de afazeres:
 () menu dentro do jogo
 () legenda
 
+---------------------------------------
+DEMANDAS:
+
+-Menu ()
+ 
+ *Salvar jogo() 
+ *Novo jogo()
+ *carregar jogo()
+ *Tela inicial()
+ *Mostrar pontuação/level/vida/numero de pellets restantes/legenda() 
+ **histórico dos jogadores()
+ **Som()
+ **Sprites()
+
+
+-Esquema de velocidade() -- ld
+-Portais() -- gui
+-Sistemas de pontuação() -- leo
+-Sistema de vidas() -- leo
+-Respawn dos fantasmas() -- gui
+-Desing() 
+----------------------------------------
+
 Decisões:
 prioridades-
 
@@ -35,6 +60,7 @@ prioridades-
 (Guilheme) spawn tudo + portal (1)
 
 -- prazo: dia 31 --
+
 
 
 
