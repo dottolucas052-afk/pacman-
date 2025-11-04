@@ -353,9 +353,14 @@ int main() {
 
         if(contador_tempo >= intervalo){
             contador_tempo -= intervalo;
-            pacman.teleportado = false;
-            for(int i = 0; i< qnt_f; i++){
-                array_fantasmas[i].teleportado = false;
+            if (mapa[pacman.posicao.linha][pacman.posicao.coluna] != 'T') {
+                 pacman.teleportado = false;
+            }
+            
+            for (int i = 0; i < qnt_f; i++) {
+                if (mapa[array_fantasmas[i].posicao.linha][array_fantasmas[i].posicao.coluna] != 'T') {
+                    array_fantasmas[i].teleportado = false;
+                }
             }
 
             pacman.posicao_anterior = pacman.posicao;
@@ -408,4 +413,5 @@ int main() {
     free(array_fantasmas);
     free(portais);
     return 0;
+
 }
