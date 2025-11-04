@@ -22,6 +22,7 @@ typedef enum { PACMAN, FANTASMA } TipoEntidade;
 typedef struct {
     TipoEntidade tipo;
     tipo_posicao posicao;
+    tipo_posicao posicao_anterior;
     direcao direcao_atual;
     direcao proxima_direcao;
     bool andar;
@@ -171,13 +172,14 @@ tipo_posicao checar_teleporte(tipo_objeto *personagem, tipo_posicao portais[], i
 }
 
 void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fantasmas[], int qnt_f, bool power_up_ativo, tipo_posicao pos_inicial_pacman) {
-    for (int i = 0; i < qnt_f; i++) {
-        // Verifica se Pacman e o Fantasma[i] estão na mesma posição
-        if (pacman->posicao.linha == array_fantasmas[i].posicao.linha &&
-            pacman->posicao.coluna == array_fantasmas[i].posicao.coluna) {
-
-            if (power_up_ativo) {
-                // depois ver se eles teram uma base e se retornam na hora
+    for(int i = 0; i< qnt_f; i++){
+        bool colisao = (pacman->posicao.linha == array_fantasmas[i].posicao.linha && pacman->posicao.coluna == array_fantasmas[i].posicao.coluna);
+        
+        bool troca = (pacman->posicao_anterior.linha == array_fantasmas[i].posicao.linha && pacman->posicao_anterior.coluna == array_fantasmas[i].posicao.coluna 
+        && array_fantasmas[i].posicao_anterior.linha == pacman->posicao.linha && array_fantasmas[i].posicao_anterior.coluna == pacman->posicao.coluna);
+       
+        if(troca||colisao){
+             if (power_up_ativo) {
                 array_fantasmas[i].posicao.linha = 0;
                 array_fantasmas[i].posicao.coluna = 0;
                 
@@ -186,10 +188,11 @@ void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fa
                 
             } else {
                 pacman->posicao = pos_inicial_pacman;
-                // se nao tiver com poder ele que é comido 
-                // contador de vidas
+                
             }
         }
+        
     }
 }
+
 
