@@ -5,8 +5,7 @@ lista de afazeres:
 
 -Fantasmas:
 (x) Fazer os fantasmas andarem
-() Colisão entre os fantasmas e o pacman -- leo
-() lidar exceções 
+(x) Colisão entre os fantasmas e o pacman -- ld
 (x) morte do pacman + Spawn Pacman
 () contagem de vidas
 
@@ -43,7 +42,7 @@ DEMANDAS:
  **Sprites()
 
 
--Esquema de velocidade() -- ld
+-Esquema de velocidade(x) -- ld
 -Portais() -- gui
 -Sistemas de pontuação() -- leo
 -Sistema de vidas() -- leo
