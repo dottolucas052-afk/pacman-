@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "raylib.h"
 
+
 // ----------------------
 // Tipos básicos
 // ----------------------
@@ -171,7 +172,7 @@ tipo_posicao checar_teleporte(tipo_objeto *personagem, tipo_posicao portais[], i
     return personagem->posicao; // Se não estava em nenhum portal, não muda
 }
 
-void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fantasmas[], int qnt_f, bool power_up_ativo, tipo_posicao pos_inicial_pacman) {
+void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fantasmas[], int qnt_f, bool power_up_ativo, tipo_posicao pos_inicial_pacman, int *pontos_ptr) {
     for(int i = 0; i< qnt_f; i++){
         bool colisao = (pacman->posicao.linha == array_fantasmas[i].posicao.linha && pacman->posicao.coluna == array_fantasmas[i].posicao.coluna);
         bool troca = (pacman->posicao_anterior.linha == array_fantasmas[i].posicao.linha && pacman->posicao_anterior.coluna == array_fantasmas[i].posicao.coluna 
@@ -180,23 +181,25 @@ void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fa
              if (power_up_ativo) {
                 array_fantasmas[i].posicao.linha = 0;
                 array_fantasmas[i].posicao.coluna = 0;
-                
+                (*pontos_ptr) += 100;
                 //Lógica de pontuação 
                 
                 
             } else {
                 pacman->posicao = pos_inicial_pacman;
+                (*pontos_ptr) -= 200;
+                if (*pontos_ptr < 0) *pontos_ptr = 0;
+             
                 
             }
         }
         
     }
 }
-
 int main() {
 
     // ~~~~ 1) Leitura do arquivo ~~~~ //
-    FILE *arq = fopen("mapa.txt", "r");
+    FILE *arq = fopen("mapa_pacman.txt", "r");
     if (arq == NULL) {
         printf("ERRO NA ABERTURA DO ARQUIVO\n");
         return 1;
@@ -219,8 +222,9 @@ int main() {
     int qnt_f = 0;
     int pellets = 0;
     tipo_objeto pacman;
+
     tipo_posicao pos_inicial_pacman;
-    //tonalidades de cor
+    //tonalidades
     Color AZUL_ESCURO = (Color){ 0, 40, 100, 255 };   
     Color AZUL_NOITE      = (Color){ 0, 20, 60, 255 };    
     Color AZUL_MARINHO    = (Color){ 0, 0, 80, 255 };     
@@ -235,6 +239,9 @@ int main() {
     tipo_posicao *portais = NULL;
     int qnt_portais = 0;
     if (contadorT > 0) portais = malloc(contadorT * sizeof(tipo_posicao));
+
+    int pontos = 0;
+    char texto_pontuacao[30];
 
     // ~~~~ 3) Varre mapa e configura entidades ~~~~ //
     for (int i = 0; i < 20; i++) {
@@ -276,12 +283,13 @@ int main() {
     const int CELULA = 20;
     const int LARGURA = 40 * CELULA;
     const int ALTURA = 20 * CELULA;
-    InitWindow(LARGURA, ALTURA, "Pacman");
+    InitWindow(LARGURA+200, ALTURA+200, "Pacman");
     srand(time(NULL));
     SetTargetFPS(60);
     double tempoInicio = 0.0;
     double tempoAtual;
-    
+
+    bool venceu = false;
     // intervalo entre um desenho e outro
     const float intervalo = 1.0f / 10.0f;
     float contador_tempo = 0.0f;
@@ -289,8 +297,7 @@ int main() {
     Vector2 pacman_pos_visual = { pacman.posicao.coluna * CELULA, pacman.posicao.linha * CELULA };
     const float VELOCIDADE_PACMAN = 100.0f;
     
-    bool venceu = false;
-    
+
     // Variáveis do Power-Up
     bool power_up_ativo = false;
     int power_up_timer = 0;
@@ -300,13 +307,14 @@ int main() {
 
     // ~~~~ 5) Loop principal ~~~~ //
     while (!WindowShouldClose()) {
-        
+
         contador_tempo = contador_tempo + GetFrameTime();
         float deslize = contador_tempo / intervalo;
         if(deslize > 1.0f){
             deslize = 1.0f;
         }
-
+        snprintf(texto_pontuacao, sizeof(texto_pontuacao), "Pontuação: %d", pontos);
+        
         BeginDrawing();
         ClearBackground(AZUL_ESCURO);
         if(venceu){
@@ -322,7 +330,8 @@ int main() {
             EndDrawing();
             continue;
         }
-        
+        DrawText(texto_pontuacao, 10, 10, 20, WHITE);
+
         int x = pacman.posicao.linha;
         int y = pacman.posicao.coluna;
         
@@ -333,16 +342,16 @@ int main() {
                 int px = j * CELULA;
                 int py = i * CELULA;
                 switch (mapa[i][j]) {
-                    case '#': DrawRectangle(px, py, CELULA, CELULA, BLACK); break;
-                    case '.': DrawCircle(px + CELULA/2, py + CELULA/2, 3, YELLOW);break;
-                    case 'o': DrawCircle(px + CELULA/2, py + CELULA/2, 6, GREEN); break;
-                    case 'T': DrawCircle(px + CELULA/2, py + CELULA/2, 5, ORANGE); break;
+                    case '#': DrawRectangle(px + 100, py + 100, CELULA, CELULA, BLACK); break;
+                    case '.': DrawCircle(px + CELULA/2 + 100, py + CELULA/2 + 100, 3, YELLOW); break;
+                    case 'o': DrawCircle(px + CELULA/2 + 100, py + CELULA/2 + 100, 6, GREEN); break;
+                    case 'T': DrawCircle(px + CELULA/2 + 100, py + CELULA/2 + 100, 5, ORANGE); break;
                 }
             }
         }
 
 
-        Color cor_fantasma = power_up_ativo ? BLUE : PURPLE; //cor vai depender do estado do fantasma
+        Color cor_fantasma = power_up_ativo ? SKYBLUE : LIGHTGRAY; //cor vai depender do estado do fantasma
         
         for (int i = 0; i < qnt_f; i++) {
             
@@ -356,7 +365,7 @@ int main() {
                 aux_fantasma_y = (array_fantasmas[i].posicao_anterior.linha * (1.0f - deslize) + array_fantasmas[i].posicao.linha * deslize) * CELULA;
             }
 
-            DrawRectangle(aux_fantasma_x, aux_fantasma_y, CELULA, CELULA, cor_fantasma);
+            DrawRectangle(aux_fantasma_x + 100, aux_fantasma_y + 100, CELULA, CELULA, cor_fantasma);
         }
         
 
@@ -370,7 +379,7 @@ int main() {
             aux_pacman_x = (pacman.posicao_anterior.coluna * (1.0f - deslize) + pacman.posicao.coluna * deslize) * CELULA;
             aux_pacman_y = (pacman.posicao_anterior.linha * (1.0f - deslize) + pacman.posicao.linha * deslize) * CELULA;
         }
-        DrawCircle(aux_pacman_x + CELULA / 2, aux_pacman_y + CELULA / 2, 9, GOLD);
+        DrawCircle(aux_pacman_x + CELULA / 2 + 100, aux_pacman_y + CELULA / 2 + 100, 9, GOLD);
         EndDrawing();
         
 
@@ -412,29 +421,31 @@ int main() {
 
             if (mapa[x][y] == '.') {
                 pellets--;
-                mapa[x][y] = ' ';
+                mapa[x][y] = ' '; 
+                pontos += 10;
                 if(pellets == 0 && !venceu){
                     venceu = true;
                     tempoInicio = GetTime();
-                } 
+                }
             } else if (mapa[x][y] == 'o') {
                 pellets--;
                 mapa[x][y] = ' ';
                 power_up_ativo = true;
                 power_up_timer = TEMPO_POWER_UP;
+                pontos += 50;
                 if(pellets == 0 && !venceu){
                     venceu = true;
                     tempoInicio = GetTime();
                 }
             }
-            
+
             checar_teleporte(&pacman, portais, qnt_portais);
             
             for (int i = 0; i < qnt_f; i++) {
                 mover_fantasma(&array_fantasmas[i], array_fantasmas, qnt_f, mapa);
                 checar_teleporte(&array_fantasmas[i], portais, qnt_portais);
             }
-            verificar_colisao_pacman_fantasma(&pacman, array_fantasmas, qnt_f, power_up_ativo, pos_inicial_pacman );
+            verificar_colisao_pacman_fantasma(&pacman, array_fantasmas, qnt_f, power_up_ativo, pos_inicial_pacman, &pontos );
         
         }
         }
