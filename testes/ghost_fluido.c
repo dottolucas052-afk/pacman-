@@ -43,6 +43,9 @@ int main() {
     int qnt_portais = 0;
     if (contadorT > 0) portais = malloc(contadorT * sizeof(tipo_posicao));
 
+    int pontos = 0;
+    char texto_pontuacao[30];
+
     // ~~~~ 3) Varre mapa e configura entidades ~~~~ //
     for (int i = 0; i < 20; i++) {
         for (int j = 0; j < 40; j++) {
@@ -106,9 +109,12 @@ int main() {
         if(deslize > 1.0f){
             deslize = 1.0f;
         }
-
+        snprintf(texto_pontuacao, sizeof(texto_pontuacao), "Pontuação: %d", pontos);
+        
         BeginDrawing();
         ClearBackground(BLACK);
+
+        DrawText(texto_pontuacao, 10, 10, 20, WHITE);
 
         int x = pacman.posicao.linha;
         int y = pacman.posicao.coluna;
@@ -120,7 +126,7 @@ int main() {
                 int px = j * CELULA;
                 int py = i * CELULA;
                 switch (mapa[i][j]) {
-                    case '#': DrawRectangle(px + 100, py + 100, CELULA, CELULA, BLUE); break;
+                    case '#': DrawRectangle(px + 100, py + 100, CELULA, CELULA, DARKBLUE); break;
                     case '.': DrawCircle(px + CELULA/2 + 100, py + CELULA/2 + 100, 3, YELLOW); break;
                     case 'o': DrawCircle(px + CELULA/2 + 100, py + CELULA/2 + 100, 6, GREEN); break;
                     case 'T': DrawCircle(px + CELULA/2 + 100, py + CELULA/2 + 100, 5, ORANGE); break;
@@ -129,7 +135,7 @@ int main() {
         }
 
 
-        Color cor_fantasma = power_up_ativo ? BLUE : PURPLE; //cor vai depender do estado do fantasma
+        Color cor_fantasma = power_up_ativo ? SKYBLUE : LIGHTGRAY; //cor vai depender do estado do fantasma
         
         for (int i = 0; i < qnt_f; i++) {
             
@@ -199,10 +205,12 @@ int main() {
 
             if (mapa[x][y] == '.') {
                 mapa[x][y] = ' '; 
+                pontos += 10;
             } else if (mapa[x][y] == 'o') {
                 mapa[x][y] = ' ';
                 power_up_ativo = true;
                 power_up_timer = TEMPO_POWER_UP;
+                pontos += 50;
             }
 
             checar_teleporte(&pacman, portais, qnt_portais);
@@ -211,7 +219,7 @@ int main() {
                 mover_fantasma(&array_fantasmas[i], array_fantasmas, qnt_f, mapa);
                 checar_teleporte(&array_fantasmas[i], portais, qnt_portais);
             }
-            verificar_colisao_pacman_fantasma(&pacman, array_fantasmas, qnt_f, power_up_ativo, pos_inicial_pacman );
+            verificar_colisao_pacman_fantasma(&pacman, array_fantasmas, qnt_f, power_up_ativo, pos_inicial_pacman, &pontos );
         
         }
         }
