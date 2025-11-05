@@ -180,6 +180,7 @@ void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fa
        
         if(troca||colisao){
              if (power_up_ativo) {
+                //aqui ficaria a lógica de respawn
                 array_fantasmas[i].posicao.linha = 0;
                 array_fantasmas[i].posicao.coluna = 0;
                 
@@ -194,5 +195,6 @@ void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fa
         
     }
 }
+
 
 
