@@ -172,15 +172,15 @@ tipo_posicao checar_teleporte(tipo_objeto *personagem, tipo_posicao portais[], i
     return personagem->posicao; // Se não estava em nenhum portal, não muda
 }
 
-void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fantasmas[], int qnt_f, bool power_up_ativo, tipo_posicao pos_inicial_pacman, int *pontos_ptr) {
+void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fantasmas[], int qnt_f, bool power_up_ativo, tipo_posicao pos_inicial_pacman, tipo_posicao pos_respawn_fantasma, int *pontos_ptr) {
     for(int i = 0; i< qnt_f; i++){
         bool colisao = (pacman->posicao.linha == array_fantasmas[i].posicao.linha && pacman->posicao.coluna == array_fantasmas[i].posicao.coluna);
         bool troca = (pacman->posicao_anterior.linha == array_fantasmas[i].posicao.linha && pacman->posicao_anterior.coluna == array_fantasmas[i].posicao.coluna 
         && array_fantasmas[i].posicao_anterior.linha == pacman->posicao.linha && array_fantasmas[i].posicao_anterior.coluna == pacman->posicao.coluna);
         if(troca||colisao){
              if (power_up_ativo) {
-                array_fantasmas[i].posicao.linha = 0;
-                array_fantasmas[i].posicao.coluna = 0;
+                array_fantasmas[i].posicao = pos_respawn_fantasma;
+                
                 (*pontos_ptr) += 100;
                 //Lógica de pontuação 
                 
@@ -224,6 +224,8 @@ int main() {
     tipo_objeto pacman;
 
     tipo_posicao pos_inicial_pacman;
+    tipo_posicao pos_inicial_fantasmas;
+    bool achou_spawn_fantasma = false;
     //tonalidades
     Color AZUL_ESCURO = (Color){ 0, 40, 100, 255 };   
     Color AZUL_NOITE      = (Color){ 0, 20, 60, 255 };    
@@ -278,7 +280,7 @@ int main() {
             }
         }
     }
-
+            if(!achou_spawn_fantasma)
     // ~~~~ 4) Inicializa Raylib ~~~~ //
     const int CELULA = 20;
     const int LARGURA = 40 * CELULA;
@@ -288,7 +290,7 @@ int main() {
     SetTargetFPS(60);
     double tempoInicio = 0.0;
     double tempoAtual;
-
+        
     bool venceu = false;
     // intervalo entre um desenho e outro
     const float intervalo = 1.0f / 10.0f;
@@ -445,7 +447,7 @@ int main() {
                 mover_fantasma(&array_fantasmas[i], array_fantasmas, qnt_f, mapa);
                 checar_teleporte(&array_fantasmas[i], portais, qnt_portais);
             }
-            verificar_colisao_pacman_fantasma(&pacman, array_fantasmas, qnt_f, power_up_ativo, pos_inicial_pacman, &pontos );
+            verificar_colisao_pacman_fantasma(&pacman, array_fantasmas, qnt_f, power_up_ativo, pos_inicial_pacman,pos_inicial_fantasmas, &pontos );
         
         }
         }
@@ -459,3 +461,4 @@ int main() {
     return 0;
 
 }
+
