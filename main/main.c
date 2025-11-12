@@ -29,6 +29,9 @@ int main() {
     tipo_objeto *array_fantasmas = NULL;
     int qnt_f = 0;
     int pellets = 0;
+    int nivel = 1;
+    int vidas = 3;
+    int *v = &vidas;
     tipo_objeto pacman;
     pacman.velocidade = 7.0f;
     tipo_posicao pos_inicial_pacman;
@@ -49,7 +52,7 @@ int main() {
 
     int pontos = 0;
     char texto_pontuacao[30];
-
+    char texto_vida[30];
     // ~~~~ 3) Varre mapa e configura entidades ~~~~ //
     for (int i = 0; i < 20; i++) {
         for (int j = 0; j < 40; j++) {
@@ -92,7 +95,7 @@ int main() {
     const int LARGURA = 40 * CELULA;
     const int ALTURA = 20 * CELULA;
 
-    InitWindow(LARGURA+200, ALTURA+200, "Pacman");
+    InitWindow(LARGURA+200, ALTURA + 200, "Pacman");
     srand(time(NULL));
     SetTargetFPS(60);
     double TempoInicio = 0.0;
@@ -126,6 +129,7 @@ int main() {
         if (IsKeyPressed(KEY_TAB)) {
             jogo_pausado = !jogo_pausado;
         }
+        
         if(power_up_ativo){
             intervalo_fantasmas = 1.0f/5.0f;
         }
@@ -142,9 +146,20 @@ int main() {
             deslize_fantasma = 1.0f;
         }
         snprintf(texto_pontuacao, sizeof(texto_pontuacao), "Pontuação: %d", pontos);
-        
+        snprintf(texto_vida, sizeof(texto_vida), "Vidas: %d", vidas);
         BeginDrawing();
         ClearBackground(AZUL_ESCURO);
+        if(vidas == 0){
+            ClearBackground(WHITE);
+            DrawText("Você Perdeu :(", 250, 200, 40, RED);
+            TempoAtual = GetFrameTime();
+            if(TempoAtual > 8.0){
+                EndDrawing();
+                break;
+            }
+            EndDrawing();
+            continue;
+        }
         if(venceu){
             ClearBackground(WHITE);
             DrawText("Você Venceu!", 250, 200, 40, RED);
@@ -156,7 +171,7 @@ int main() {
             continue;
         }
         DrawText(texto_pontuacao, 10, 10, 20, WHITE);
-
+        DrawText(texto_vida, 200, 10, 20, WHITE);
         int x = pacman.posicao.linha;
         int y = pacman.posicao.coluna;
         
@@ -265,7 +280,7 @@ int main() {
                 }
 
                 checar_teleporte(&pacman, portais, qnt_portais);
-                verificar_colisao_pacman_fantasma(&pacman, array_fantasmas, qnt_f, power_up_ativo, pos_inicial_pacman, &pontos );
+                verificar_colisao_pacman_fantasma(&pacman, array_fantasmas, qnt_f, power_up_ativo, pos_inicial_pacman, &pontos, v);
             
             }
             }
@@ -305,5 +320,8 @@ int main() {
     return 0;
 
 }
+
+}
+
 
 
