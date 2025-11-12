@@ -13,7 +13,7 @@ Prioridades
 - controle de níveis(Ld)
 - contador de pellets (Guilherme)
 - portais(Lucas)
-- Velocidade - Normal(8 blocos por segundo) | pellet(3 Blocos por segundo) (Ld)
+- Velocidade - Normal(8 blocos por segundo) | pellet(3 Blocos por segundo) (Ld)(X)
 
 Checar:
 (Lucas e Guilherme)
