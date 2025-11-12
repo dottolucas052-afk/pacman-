@@ -157,13 +157,24 @@ void mover_fantasma(tipo_objeto *fantasma, tipo_objeto array_fantasmas[], int qn
 tipo_posicao checar_teleporte(tipo_objeto *personagem, tipo_posicao portais[], int qnt_portais) {
     for (int i = 0; i < qnt_portais; i++) {
         if (personagem->posicao.linha == portais[i].linha && personagem->posicao.coluna == portais[i].coluna && personagem->teleportado == false) {
-            for (int j =0; j<qnt_portais; j++){
-                if (i != j && portais[i].linha == portais[j].linha){
-                    personagem->posicao = portais[j];
-                    personagem->teleportado = true;
-                    return personagem->posicao;
-                }
-            }         
+            if (portais[i].coluna<=2||portais[i].coluna>=37){
+                for (int j =0; j<qnt_portais; j++){
+                    if (i != j && portais[i].linha == portais[j].linha){
+                        personagem->posicao = portais[j];
+                        personagem->teleportado = true;
+                        return personagem->posicao;
+                    }
+                }         
+            }
+            if (portais[i].linha<=2||portais[i].linha>=17){
+                for (int j =0; j<qnt_portais; j++){
+                    if (i != j && portais[i].coluna == portais[j].coluna){
+                        personagem->posicao = portais[j];
+                        personagem->teleportado = true;
+                        return personagem->posicao;
+                    }
+                }         
+            }
         }
     }
     return personagem->posicao; // Se não estava em nenhum portal, não muda
@@ -194,3 +205,4 @@ void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fa
         
     }
 }
+
