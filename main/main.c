@@ -7,7 +7,7 @@
 int main() {
 
     // ~~~~ 1) Leitura do arquivo ~~~~ //
-    FILE *arq = fopen("mapa_pacman.txt", "r");
+    FILE *arq = fopen("mapa.txt", "r");
     if (arq == NULL) {
         printf("ERRO NA ABERTURA DO ARQUIVO\n");
         return 1;
@@ -40,6 +40,10 @@ int main() {
             if (mapa[i][j] == 'T') contadorT++;
 
     tipo_posicao *portais = NULL;
+    Color AZUL_ESCURO = (Color){ 0, 40, 100, 255 };   
+    Color AZUL_NOITE      = (Color){ 0, 20, 60, 255 };    
+    Color AZUL_MARINHO    = (Color){ 0, 0, 80, 255 };     
+    Color ROXO_ESCURO = (Color){ 40, 0, 100, 255 };
     int qnt_portais = 0;
     if (contadorT > 0) portais = malloc(contadorT * sizeof(tipo_posicao));
 
@@ -121,7 +125,7 @@ int main() {
         snprintf(texto_pontuacao, sizeof(texto_pontuacao), "Pontuação: %d", pontos);
         
         BeginDrawing();
-        ClearBackground(BLACK);
+        ClearBackground(AZUL_ESCURO);
 
         DrawText(texto_pontuacao, 10, 10, 20, WHITE);
 
@@ -135,7 +139,7 @@ int main() {
                 int px = j * CELULA;
                 int py = i * CELULA;
                 switch (mapa[i][j]) {
-                    case '#': DrawRectangle(px + 100, py + 100, CELULA, CELULA, DARKBLUE); break;
+                    case '#': DrawRectangle(px + 100, py + 100, CELULA, CELULA, BLACK); break;
                     case '.': DrawCircle(px + CELULA/2 + 100, py + CELULA/2 + 100, 3, YELLOW); break;
                     case 'o': DrawCircle(px + CELULA/2 + 100, py + CELULA/2 + 100, 6, GREEN); break;
                     case 'T': DrawCircle(px + CELULA/2 + 100, py + CELULA/2 + 100, 5, ORANGE); break;
@@ -144,7 +148,7 @@ int main() {
         }
 
 
-        Color cor_fantasma = power_up_ativo ? SKYBLUE : LIGHTGRAY; //cor vai depender do estado do fantasma
+        Color cor_fantasma = power_up_ativo ? RED : PURPLE; //cor vai depender do estado do fantasma
         
         for (int i = 0; i < qnt_f; i++) {
             
