@@ -4,9 +4,6 @@
 #include <stdbool.h>
 #include "raylib.h"
 
-// ----------------------
-// Tipos básicos
-// ----------------------
 typedef struct {
     int linha;
     int coluna;
@@ -25,6 +22,7 @@ typedef struct {
     tipo_posicao posicao_anterior;
     direcao direcao_atual;
     direcao proxima_direcao;
+    float velocidade;
     bool andar;
     bool teleportado;
 } tipo_objeto;
@@ -171,30 +169,28 @@ tipo_posicao checar_teleporte(tipo_objeto *personagem, tipo_posicao portais[], i
     return personagem->posicao; // Se não estava em nenhum portal, não muda
 }
 
-void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fantasmas[], int qnt_f, bool power_up_ativo, tipo_posicao pos_inicial_pacman) {
+void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fantasmas[], int qnt_f, bool power_up_ativo, tipo_posicao pos_inicial_pacman, int *pontos_ptr) {
     for(int i = 0; i< qnt_f; i++){
         bool colisao = (pacman->posicao.linha == array_fantasmas[i].posicao.linha && pacman->posicao.coluna == array_fantasmas[i].posicao.coluna);
-        
         bool troca = (pacman->posicao_anterior.linha == array_fantasmas[i].posicao.linha && pacman->posicao_anterior.coluna == array_fantasmas[i].posicao.coluna 
         && array_fantasmas[i].posicao_anterior.linha == pacman->posicao.linha && array_fantasmas[i].posicao_anterior.coluna == pacman->posicao.coluna);
-       
         if(troca||colisao){
              if (power_up_ativo) {
-                //aqui ficaria a lógica de respawn
+
                 array_fantasmas[i].posicao.linha = 0;
                 array_fantasmas[i].posicao.coluna = 0;
-                
+                (*pontos_ptr) += 100;
                 //Lógica de pontuação 
                 
                 
             } else {
                 pacman->posicao = pos_inicial_pacman;
+                (*pontos_ptr) -= 200;
+                if (*pontos_ptr < 0) *pontos_ptr = 0;
+             
                 
             }
         }
         
     }
 }
-
-
-
