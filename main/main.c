@@ -12,7 +12,7 @@ int main() {
         printf("ERRO NA ABERTURA DO ARQUIVO\n");
         return 1;
     }
-
+    char controle[20][41];
     char mapa[20][41];
     for (int i = 0; i < 20; i++) {
         for (int j = 0; j < 40; j++) {
@@ -20,8 +20,10 @@ int main() {
             while (c == '\r' || c == '\n') c = fgetc(arq); // ignora quebra de linha
             if (c == EOF) c = ' ';
             mapa[i][j] = (char)c;
+            controle[i][j] = (char)c;
         }
         mapa[i][40] = '\0';
+        controle[i][40] = '\0';
     }
     fclose(arq);
 
@@ -29,9 +31,9 @@ int main() {
     tipo_objeto *array_fantasmas = NULL;
     int qnt_f = 0;
     int pellets = 0;
-    int nivel = 1;
     int vidas = 3;
     int *v = &vidas;
+    int nivel = 1;
     tipo_objeto pacman;
     pacman.velocidade = 7.0f;
     tipo_posicao pos_inicial_pacman;
@@ -53,6 +55,7 @@ int main() {
     int pontos = 0;
     char texto_pontuacao[30];
     char texto_vida[30];
+    char texto_vitoria[30];
     // ~~~~ 3) Varre mapa e configura entidades ~~~~ //
     for (int i = 0; i < 20; i++) {
         for (int j = 0; j < 40; j++) {
@@ -99,7 +102,7 @@ int main() {
     srand(time(NULL));
     SetTargetFPS(60);
     double TempoInicio = 0.0;
-    double TempoAtual;
+    double TempoAtual = 0.0;
     // intervalo entre um desenho e outro
 
     bool jogo_pausado = true;
@@ -119,12 +122,23 @@ int main() {
     bool power_up_ativo = false;
     int power_up_timer = 0;
     const int TEMPO_POWER_UP = 80; // considerei 8 segundos (ver esquema de velocidade para poder aumentar fps)
-
-
-
+    
+    // Níveis
+    char Texto_inicial[8] = "NÍVEL 1";
+    int larguraTexto = MeasureText(Texto_inicial, 40);
+    int posX = (GetScreenWidth() - larguraTexto) / 2;
+    int posY = (GetScreenHeight() - 40) / 2;
+    double tela_inicial = 0.0;
+    while(tela_inicial<5.0){
+        tela_inicial += GetFrameTime();
+        BeginDrawing();
+            ClearBackground(BLACK);
+            DrawText("NÍVEL 1", posX, posY, 40, RED);
+        EndDrawing();
+    }
+    // pellets = 10;
     // ~~~~ 5) Loop principal ~~~~ //
     while (!WindowShouldClose()) {
-
 
         if (IsKeyPressed(KEY_TAB)) {
             jogo_pausado = !jogo_pausado;
@@ -147,12 +161,15 @@ int main() {
         }
         snprintf(texto_pontuacao, sizeof(texto_pontuacao), "Pontuação: %d", pontos);
         snprintf(texto_vida, sizeof(texto_vida), "Vidas: %d", vidas);
+        snprintf(texto_vitoria,sizeof(texto_vitoria),  "NÍVEL %d", nivel);
+        
         BeginDrawing();
         ClearBackground(AZUL_ESCURO);
+        
         if(vidas == 0){
             ClearBackground(WHITE);
-            DrawText("Você Perdeu :(", 250, 200, 40, RED);
-            TempoAtual = GetFrameTime();
+            DrawText("Você Perdeu :(", posX, posY, 40, RED);
+            TempoAtual += GetFrameTime();
             if(TempoAtual > 8.0){
                 EndDrawing();
                 break;
@@ -160,16 +177,61 @@ int main() {
             EndDrawing();
             continue;
         }
-        if(venceu){
-            ClearBackground(WHITE);
-            DrawText("Você Venceu!", 250, 200, 40, RED);
-            if(TempoAtual - TempoInicio > 8.0){
-                EndDrawing();
-                break;
+
+        if (venceu) {
+    float TempoAtual = 0.0f;
+
+    while (TempoAtual < 5.0f) {
+        BeginDrawing();
+        ClearBackground(BLACK);
+        DrawText(texto_vitoria, posX, posY, 40, RED);
+        EndDrawing();
+
+        TempoAtual += GetFrameTime();
+    }
+
+    // pellets = 30;
+    for (int i = 0, qnt = 0; i < 20; i++) {
+        for (int j = 0; j < 41; j++) {
+            mapa[i][j] = controle[i][j];
+            if (controle[i][j] == '.' || controle[i][j] == 'o') {
+                pellets++;
             }
-            EndDrawing();
-            continue;
+            if(controle[i][j] == 'P'){
+                pacman.posicao.linha = i;
+                pacman.posicao.coluna = j;
+
+                pos_inicial_pacman.linha = i;
+                pos_inicial_pacman.coluna = j;
+                pacman.posicao_anterior = pacman.posicao;
+                pacman.andar = false;
+                pacman.teleportado = false;
+            }
+            if(controle[i][j] == 'F'){
+                qnt++;
+                array_fantasmas = realloc(array_fantasmas, qnt_f * sizeof(tipo_objeto));
+                array_fantasmas[qnt-1].tipo = FANTASMA;
+                array_fantasmas[qnt-1].posicao.linha = i;
+                array_fantasmas[qnt-1].posicao.coluna = j;
+                array_fantasmas[qnt-1].direcao_atual = CIMA;
+                array_fantasmas[qnt-1].proxima_direcao = CIMA;
+                array_fantasmas[qnt-1].andar = true;
+                array_fantasmas[qnt-1].teleportado = false;
+                array_fantasmas[qnt-1].velocidade = 7.0f;
+                mapa[i][j] = ' ';
+                
+            }
+
         }
+        
+    }
+    power_up_ativo = false;
+    DrawRectangle(0, 0, 20, 20, BLACK);
+    venceu = false;
+    continue;
+}
+
+
         DrawText(texto_pontuacao, 10, 10, 20, WHITE);
         DrawText(texto_vida, 200, 10, 20, WHITE);
         int x = pacman.posicao.linha;
@@ -264,6 +326,7 @@ int main() {
                     mapa[x][y] = ' '; 
                     pontos += 10;
                     if(pellets == 0 && !venceu){
+                        nivel++;
                         venceu = true;
                         TempoInicio = GetTime();
                     }
@@ -274,6 +337,7 @@ int main() {
                     power_up_timer = TEMPO_POWER_UP;
                     pontos += 50;
                     if(pellets == 0 && !venceu){
+                        nivel++;
                         venceu = true;
                         TempoInicio = GetTime();
                     }
@@ -321,7 +385,6 @@ int main() {
 
 }
 
-}
 
 
 
