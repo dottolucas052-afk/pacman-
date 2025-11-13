@@ -8,9 +8,9 @@ Prioridades
 	-Sair do jogo - Q
 	-Voltar - V
 - Tela inicial (Joao e Leo)
-- níveis ()
-- controle de vidas(Ld)
-- controle de níveis(Ld)
+- níveis (Ld)
+- controle de vidas(Ld)(X)
+- controle de níveis(Ld)(X)
 - contador de pellets (Guilherme)
 - portais(Lucas)
 - Velocidade - Normal(8 blocos por segundo) | pellet(3 Blocos por segundo) (Ld)(X)
