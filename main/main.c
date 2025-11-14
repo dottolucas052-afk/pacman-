@@ -289,8 +289,8 @@ int main() {
 }
 
 
-        DrawText(texto_pontuacao, 10, 10, 20, WHITE);
-        DrawText(texto_vida, 200, 10, 20, WHITE);
+        DrawText(texto_pontuacao, 10, ALTURA - 15, 20, WHITE);
+        DrawText(texto_vida, 200, ALTURA - 15, 20, WHITE);
         int x = pacman.posicao.linha;
         int y = pacman.posicao.coluna;
         
