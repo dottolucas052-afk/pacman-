@@ -198,12 +198,13 @@ void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fa
                 pacman->posicao = pos_inicial_pacman;
                 (*pontos_ptr) -= 200;
                 if (*pontos_ptr < 0) *pontos_ptr = 0;
-             
+                *(v) -= 1;
                 
             }
         }
         
     }
 }
+
 
 
