@@ -54,6 +54,7 @@ int main() {
 
     int pontos = 0;
     char texto_pontuacao[30];
+    char texto_pellets[30];
     char texto_vida[30];
     char texto_vitoria[30];
     // ~~~~ 3) Varre mapa e configura entidades ~~~~ //
@@ -98,6 +99,7 @@ int main() {
     const int LARGURA = 40 * CELULA;
     const int ALTURA = 20 * CELULA;
 
+
     InitWindow(LARGURA, ALTURA + 40, "Pacman");
     srand(time(NULL));
     SetTargetFPS(60);
@@ -105,7 +107,7 @@ int main() {
     double TempoAtual = 0.0;
     // intervalo entre um desenho e outro
 
-    bool jogo_pausado = true;
+    bool jogo_pausado = false;
     bool venceu = false;
     const float intervalo = 1.0f / 4.0f;
     float intervalo_pacman = 1.0f/pacman.velocidade;
@@ -198,11 +200,11 @@ int main() {
     while (!WindowShouldClose()) {
 
         if (IsKeyPressed(KEY_TAB)) {
-            jogo_pausado = false;
+            jogo_pausado = true;
         }
         
         if(IsKeyPressed(KEY_V)){
-            jogo_pausado = true;
+            jogo_pausado = false;
         }
 
         if(power_up_ativo){
@@ -221,6 +223,7 @@ int main() {
             deslize_fantasma = 1.0f;
         }
         snprintf(texto_pontuacao, sizeof(texto_pontuacao), "Pontuação: %d", pontos);
+        snprintf(texto_pellets, sizeof(texto_pellets), "Pellets Restantes: %d", pellets);
         snprintf(texto_vida, sizeof(texto_vida), "Vidas: %d", vidas);
         snprintf(texto_vitoria,sizeof(texto_vitoria),  "NÍVEL %d", nivel);
         
@@ -303,6 +306,7 @@ int main() {
 
         DrawText(texto_pontuacao, 10, ALTURA - 15, 20, WHITE);
         DrawText(texto_vida, 200, ALTURA - 15, 20, WHITE);
+        DrawText(texto_pellets, 350, ALTURA - 15, 20, WHITE);
         int x = pacman.posicao.linha;
         int y = pacman.posicao.coluna;
         
@@ -354,7 +358,9 @@ int main() {
         DrawCircle(aux_pacman_x + CELULA / 2 , aux_pacman_y + CELULA / 2 , 9, GOLD);
        
        
-         if (!jogo_pausado) {
+        
+
+         if (jogo_pausado) {
             int pause = MeasureText("Pressione TAB para pausar", 20);
             DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.50f));
             DrawText("JOGO PAUSADO",LARGURA/2-pause/2,60, 40, WHITE);
@@ -384,6 +390,66 @@ int main() {
             DrawRectangle(LARGURA/2-load+load+10+10, ALTURA/2+50 , back+20, 40, LIGHTGRAY);
             DrawText("Voltar ao Jogo(V)",LARGURA/2-load+load+10+10+10 , ALTURA/2 +50+ 10, 20, BLACK);
 
+            if (IsKeyPressed(KEY_N)) {
+                // Reinicia o jogo
+                vidas = 3;
+                pontos = 0;
+                nivel = 1;
+                pellets = 0;
+
+                // 1) Zera fantasmas antigos
+                free(array_fantasmas);
+                array_fantasmas = NULL;
+                qnt_f = 0;
+
+                // 2) Varre o mapa de controle e reseta tudo
+                for (int i = 0; i < 20; i++) {
+                    for (int j = 0; j < 41; j++) {
+
+                mapa[i][j] = controle[i][j];
+
+                if (controle[i][j] == '.' || controle[i][j] == 'o') {
+                    pellets++;
+                }
+
+                // Recarrega PACMAN
+                if (controle[i][j] == 'P') {
+                    pacman.posicao.linha = i;
+                    pacman.posicao.coluna = j;
+
+                    pos_inicial_pacman.linha = i;
+                    pos_inicial_pacman.coluna = j;
+
+                    pacman.posicao_anterior = pacman.posicao;
+                    pacman.andar = false;
+                    pacman.teleportado = false;
+                }
+
+                // **Recarrega FANTASMAS**
+                if (controle[i][j] == 'F') {
+
+                    qnt_f++;
+                    array_fantasmas = realloc(array_fantasmas, qnt_f * sizeof(tipo_objeto));
+
+                    array_fantasmas[qnt_f - 1].tipo = FANTASMA;
+                    array_fantasmas[qnt_f - 1].posicao.linha = i;
+                    array_fantasmas[qnt_f - 1].posicao.coluna = j;
+
+                    array_fantasmas[qnt_f - 1].posicao_anterior = array_fantasmas[qnt_f - 1].posicao;
+
+                    array_fantasmas[qnt_f - 1].direcao_atual = CIMA;
+                    array_fantasmas[qnt_f - 1].proxima_direcao = CIMA;
+
+                    array_fantasmas[qnt_f - 1].andar = true;
+                    array_fantasmas[qnt_f - 1].teleportado = false;
+
+                    mapa[i][j] = ' ';   
+                }
+
+                        }
+                    }
+                    jogo_pausado = false;
+                }
         }
 
         EndDrawing();
@@ -401,7 +467,7 @@ int main() {
             pacman.posicao_anterior = pacman.posicao;
 
 
-            if (jogo_pausado) {
+            if (!jogo_pausado) {
                 
                 pacman.andar = false;
                 if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_W)) {pacman.direcao_atual = CIMA; pacman.andar = true;} 
