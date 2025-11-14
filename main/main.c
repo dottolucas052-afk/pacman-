@@ -46,7 +46,7 @@ int main() {
 
     tipo_posicao *portais = NULL;
     Color AZUL_ESCURO = (Color){ 0, 40, 100, 255 };   
-    Color AZUL_NOITE      = (Color){ 0, 20, 60, 255 };    
+    Color AZUL_NOITE      = (Color){ 5, 25, 70, 255 };    
     Color AZUL_MARINHO    = (Color){ 0, 0, 80, 255 };     
     Color ROXO_ESCURO = (Color){ 40, 0, 100, 255 };
     int qnt_portais = 0;
@@ -198,9 +198,13 @@ int main() {
     while (!WindowShouldClose()) {
 
         if (IsKeyPressed(KEY_TAB)) {
-            jogo_pausado = !jogo_pausado;
+            jogo_pausado = false;
         }
         
+        if(IsKeyPressed(KEY_V)){
+            jogo_pausado = true;
+        }
+
         if(power_up_ativo){
             intervalo_fantasmas = 1.0f/5.0f;
         }
@@ -221,7 +225,7 @@ int main() {
         snprintf(texto_vitoria,sizeof(texto_vitoria),  "NÍVEL %d", nivel);
         
         BeginDrawing();
-        ClearBackground(AZUL_MARINHO);
+        ClearBackground(AZUL_NOITE);
         
         if(vidas == 0 || IsKeyDown(KEY_X)){
             ClearBackground(AZUL_MARINHO);
@@ -476,6 +480,5 @@ int main() {
     return 0;
 
 }
-
 
 
