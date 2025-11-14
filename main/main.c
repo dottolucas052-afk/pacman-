@@ -136,7 +136,7 @@ int main() {
 
     while(Tela_inicial && !WindowShouldClose()){
         BeginDrawing();
-            ClearBackground(BLACK);
+            ClearBackground(AZUL_MARINHO);
             DrawText("PACMAN", (LARGURA - titulo)/2, 80, 60, YELLOW);
             DrawText("Pressione ENTER para iniciar", (LARGURA - novo_jogo)/2, 200, 20, WHITE);
             DrawText("Pressione C para carregar jogo salvo", (LARGURA - carregar_jogo)/2, 240, 20, WHITE);
@@ -221,13 +221,21 @@ int main() {
         snprintf(texto_vitoria,sizeof(texto_vitoria),  "NÍVEL %d", nivel);
         
         BeginDrawing();
-        ClearBackground(AZUL_ESCURO);
+        ClearBackground(AZUL_MARINHO);
         
-        if(vidas == 0){
-            ClearBackground(WHITE);
-            DrawText("Você Perdeu :(", posX, posY, 40, RED);
+        if(vidas == 0 || IsKeyDown(KEY_X)){
+            ClearBackground(AZUL_MARINHO);
+            
+
+            int GameOver = MeasureText("Você Perdeu :(", 40);
+            DrawText("Você Perdeu :(", LARGURA/2 - GameOver/2, ALTURA/3, 40, YELLOW);
+            
+            int Again = MeasureText("Pressione R para jogar novamente", 20);
+            DrawText("Pressione R para jogar novamente", LARGURA/2 - Again/2+10, ALTURA/2, 20, GOLD);
+            DrawRectangle(LARGURA/2 - Again/2, ALTURA/2 - 10 , Again +20, 40, Fade(GOLD, 0.5f));
+            
             TempoAtual += GetFrameTime();
-            if(TempoAtual > 8.0){
+            if(TempoAtual > 8000.0){
                 EndDrawing();
                 break;
             }
