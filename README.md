@@ -2,7 +2,7 @@ Prioridades
 - Spawn fantasmas(Guilherme) 
 - funções do menu(João e Leo e Lucas)	
 	-Abrir Menu - TAB 👍
-	-novo jogo - N
+	-novo jogo - N 👍
 	-Carregar jogo - C
 	-Salvar jogo - S
 	-Sair do jogo - Q
