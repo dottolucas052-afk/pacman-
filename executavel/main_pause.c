@@ -7,7 +7,7 @@
 int main() {
 
     // ~~~~ 1) Leitura do arquivo ~~~~ //
-    FILE *arq = fopen("mapa_pacman.txt", "r");
+    FILE *arq = fopen("mapa.txt", "r");
     if (arq == NULL) {
         printf("ERRO NA ABERTURA DO ARQUIVO\n");
         return 1;
@@ -201,6 +201,7 @@ int main() {
 
         if (IsKeyPressed(KEY_TAB)) {
             jogo_pausado = true;
+            
         }
         
         if(IsKeyPressed(KEY_V)){
@@ -208,11 +209,14 @@ int main() {
         }
 
         if(power_up_ativo){
-            intervalo_fantasmas = 1.0f/5.0f;
+            intervalo_fantasmas = 1.0f/3.0f; 
+        } else {
+             intervalo_fantasmas = 1.0f/7.0f;
         }
-        contador_pacman += GetFrameTime();
-        contador_fantasmas += GetFrameTime();
-        
+        if(!jogo_pausado){
+            contador_pacman += GetFrameTime();
+            contador_fantasmas += GetFrameTime();
+        }
         float deslize_pacman = contador_pacman / intervalo_pacman;
         float deslize_fantasma  = contador_fantasmas /intervalo_fantasmas;
         
@@ -515,7 +519,9 @@ int main() {
 
                 checar_teleporte(&pacman, portais, qnt_portais);
                 verificar_colisao_pacman_fantasma(&pacman, array_fantasmas, qnt_f, power_up_ativo, pos_inicial_pacman, &pontos, v);
-            if(contador_fantasmas >= intervalo_fantasmas){
+            }
+        }
+        if(contador_fantasmas >= intervalo_fantasmas){
                 contador_fantasmas -= intervalo_fantasmas;
                 for (int i = 0; i < qnt_f; i++) {
                     if (mapa[array_fantasmas[i].posicao.linha][array_fantasmas[i].posicao.coluna] != 'T') {
@@ -529,6 +535,7 @@ int main() {
                     if (power_up_ativo) {
                         power_up_timer--;
                         if (power_up_timer <= 0) {
+                            intervalo_fantasmas = 1.0f/7.0f;
                             power_up_ativo = false;
                         }
                     }
@@ -540,36 +547,10 @@ int main() {
                 //verificar_colisao_pacman_fantasma(&pacman, array_fantasmas, qnt_f, power_up_ativo, pos_inicial_pacman, &pontos );
 
             }
-            }
-            /*
-            if(contador_fantasmas >= intervalo_fantasmas){
-                contador_fantasmas -= intervalo_fantasmas;
-                for (int i = 0; i < qnt_f; i++) {
-                    if (mapa[array_fantasmas[i].posicao.linha][array_fantasmas[i].posicao.coluna] != 'T') {
-                        array_fantasmas[i].teleportado = false;
-                    }
-                }
-                for(int i = 0; i< qnt_f; i++){
-                    array_fantasmas[i].posicao_anterior = array_fantasmas[i].posicao;
-                }
-                if(!jogo_pausado){
-                    if (power_up_ativo) {
-                        power_up_timer--;
-                        if (power_up_timer <= 0) {
-                            power_up_ativo = false;
-                        }
-                    }
-                }
-                for (int i = 0; i < qnt_f; i++) {
-                    mover_fantasma(&array_fantasmas[i], array_fantasmas, qnt_f, mapa);
-                    checar_teleporte(&array_fantasmas[i], portais, qnt_portais);
-                }
-                //verificar_colisao_pacman_fantasma(&pacman, array_fantasmas, qnt_f, power_up_ativo, pos_inicial_pacman, &pontos );
-*/
-            }
-        }
-    
-    
+            
+        
+    }
+
 
     // ~~~~ 6) Libera memória ~~~~ //
     CloseWindow();
