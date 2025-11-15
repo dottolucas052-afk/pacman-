@@ -1,19 +1,19 @@
 Prioridades
-- Spawn fantasmas(Guilherme) 
-- funções do menu(João e Leo e Lucas)	
+- Spawn fantasmas 
+- funções do menu	
 	-Abrir Menu - TAB 👍
 	-novo jogo - N 👍
 	-Carregar jogo - C
 	-Salvar jogo - S
-	-Sair do jogo - Q
+	-Sair do jogo - Q👍
 	-Voltar - V 👍
-- Tela inicial (Joao e Leo) 👍 (design?)
-- níveis (Ld)
-- controle de vidas(Ld)(X)
-- controle de níveis(Ld)(X)
-- contador de pellets (Guilherme)
-- portais(Lucas)
-- Velocidade - Normal(8 blocos por segundo) | pellet(3 Blocos por segundo) (Ld)(X)
+- Tela inicial 👍 (design?)
+- níveis 👍
+- controle de vidas👍
+- controle de níveis👍
+- contador de pellets👍
+- portais
+- Velocidade - Normal(8 blocos por segundo) | pellet(3 Blocos por segundo) 👍
 
 Checar:
 (Lucas e Guilherme)
