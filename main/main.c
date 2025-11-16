@@ -37,7 +37,7 @@ int main() {
     tipo_objeto pacman;
     pacman.velocidade = 7.0f;
     tipo_posicao pos_inicial_pacman;
-   
+    float pacman_rotacao;
     // Conta portais (T)
     int contadorT = 0;
     for (int i = 0; i < 20; i++)
@@ -51,7 +51,7 @@ int main() {
     Color ROXO_ESCURO = (Color){ 40, 0, 100, 255 };
 
     Texture2D textura_teleporte;
-    Texture2D textura_fantasma;
+    
     Texture2D textura_logo;
 
     int qnt_portais = 0;
@@ -109,8 +109,10 @@ int main() {
     srand(time(NULL));
     SetTargetFPS(60);
 
+    Texture2D textura_fantasma_normal = LoadTexture("sprites/sprite_fantasma.png");
+    Texture2D textura_fantasma_nervoso = LoadTexture("sprites/fantasma_nervoso.png");
+    Texture2D textura_pacman = LoadTexture("sprites/pacman.gif");
     textura_teleporte = LoadTexture("teleporte.png");
-    textura_fantasma = LoadTexture("fantasma.png");
     textura_logo = LoadTexture("logo.png");
 
     double TempoInicio = 0.0;
@@ -409,7 +411,9 @@ int main() {
         for (int i = 0; i < qnt_f; i++) {
             
             float aux_fantasma_x, aux_fantasma_y;
-            
+            Rectangle origem_f;
+            Rectangle destino_f = { aux_fantasma_x, aux_fantasma_y, (float)CELULA, (float)CELULA };
+            Vector2 origem_desenho_f = { 0.0f, 0.0f };
             if (array_fantasmas[i].teleportado) {
                 aux_fantasma_x = array_fantasmas[i].posicao.coluna * CELULA;
                 aux_fantasma_y = array_fantasmas[i].posicao.linha * CELULA;
@@ -417,8 +421,14 @@ int main() {
                 aux_fantasma_x = (array_fantasmas[i].posicao_anterior.coluna * (1.0f - deslize_fantasma) + array_fantasmas[i].posicao.coluna * deslize_fantasma) * CELULA;
                 aux_fantasma_y = (array_fantasmas[i].posicao_anterior.linha * (1.0f - deslize_fantasma) + array_fantasmas[i].posicao.linha * deslize_fantasma) * CELULA;
             }
-
-            DrawTexturePro(textura_fantasma, (Rectangle){ 0.0f, 0.0f, (float)textura_fantasma.width, (float)textura_fantasma.height }, (Rectangle){ (float)aux_fantasma_x, (float)aux_fantasma_y, (float)CELULA, (float)CELULA }, (Vector2){ 0.0f, 0.0f }, 0.0f, WHITE); 
+            
+            if(power_up_ativo){
+                origem_f = (Rectangle){ 0.0f, 0.0f, (float)textura_fantasma_nervoso.width, (float)textura_fantasma_nervoso.height };
+                DrawTexturePro(textura_fantasma_nervoso, origem_f, destino_f, origem_desenho_f, 0.0f, WHITE);
+            }else{
+                origem_f = (Rectangle){ 0.0f, 0.0f, (float)textura_fantasma_normal.width, (float)textura_fantasma_normal.height };
+                DrawTexturePro(textura_fantasma_normal, origem_f, destino_f, origem_desenho_f, 0.0f, WHITE);
+            }
         }
         
         
@@ -433,9 +443,12 @@ int main() {
             aux_pacman_x = (pacman.posicao_anterior.coluna * (1.0f - deslize_pacman) + pacman.posicao.coluna * deslize_pacman) * CELULA;
             aux_pacman_y = (pacman.posicao_anterior.linha * (1.0f - deslize_pacman) + pacman.posicao.linha * deslize_pacman) * CELULA;
         }
-        DrawCircle(aux_pacman_x + CELULA / 2 , aux_pacman_y + CELULA / 2 , 9, GOLD);
-       
-       
+        Rectangle origem_p = { 0.0f, 0.0f, (float)textura_pacman.width, (float)textura_pacman.height };
+        
+        Vector2 origem_desenho_p = { (float)CELULA / 2.0f, (float)CELULA / 2.0f };
+        Rectangle destino_p = { aux_pacman_x + origem_desenho_p.x, aux_pacman_y + origem_desenho_p.y, (float)CELULA, (float)CELULA};
+        DrawTexturePro(textura_pacman, origem_p, destino_p, origem_desenho_p, pacman_rotacao, WHITE);
+
         
 
          if (jogo_pausado) {
@@ -556,10 +569,10 @@ int main() {
             if (!jogo_pausado) {
                 
                 pacman.andar = false;
-                if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_W)) {pacman.direcao_atual = CIMA; pacman.andar = true;} 
-                if (IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S)) {pacman.direcao_atual = BAIXO; pacman.andar = true;} 
-                if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) {pacman.direcao_atual = DIREITA; pacman.andar = true;} 
-                if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)) {pacman.direcao_atual = ESQUERDA; pacman.andar = true;}
+                if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_W)) {pacman.direcao_atual = CIMA; pacman.andar = true; pacman_rotacao = 270.0f;} 
+                if (IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S)) {pacman.direcao_atual = BAIXO; pacman.andar = true; pacman_rotacao = 90.0f;} 
+                if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) {pacman.direcao_atual = DIREITA; pacman.andar = true; pacman_rotacao = 0.0f;} 
+                if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)) {pacman.direcao_atual = ESQUERDA; pacman.andar = true; pacman_rotacao = 180.0f;}
                 
                 if (pacman.andar == true){
                     pacman.teleportado = false;
@@ -634,3 +647,4 @@ int main() {
     return 0;
 
 }
+
