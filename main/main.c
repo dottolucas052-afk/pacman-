@@ -52,6 +52,7 @@ int main() {
 
     Texture2D textura_teleporte;
     Texture2D textura_fantasma;
+    Texture2D textura_logo;
 
     int qnt_portais = 0;
     if (contadorT > 0) portais = malloc(contadorT * sizeof(tipo_posicao));
@@ -110,6 +111,8 @@ int main() {
 
     textura_teleporte = LoadTexture("teleporte.png");
     textura_fantasma = LoadTexture("fantasma.png");
+    textura_logo = LoadTexture("logo.png");
+
     double TempoInicio = 0.0;
     double TempoAtual = 0.0;
     // intervalo entre um desenho e outro
@@ -142,11 +145,15 @@ int main() {
     int opcoes = MeasureText("Pressione O para opções", 20);
     int sair = MeasureText("Pressione ESC para sair", 20);
 
+    const int LOGO_LARGURA_DESEJADA = 300;
+    const int LOGO_ALTURA_DESEJADA = (int)(((float)textura_logo.height / textura_logo.width) * LOGO_LARGURA_DESEJADA); // Mantém a proporção
+    int logo_x = (LARGURA - LOGO_LARGURA_DESEJADA) / 2;
+    int logo_y = 80;
 
     while(Tela_inicial && !WindowShouldClose()){
         BeginDrawing();
             ClearBackground(AZUL_MARINHO);
-            DrawText("PACMAN", (LARGURA - titulo)/2, 80, 60, YELLOW);
+            DrawTexturePro(textura_logo,(Rectangle){ 0.0f, 0.0f, (float)textura_logo.width, (float)textura_logo.height },(Rectangle){ (float)logo_x, (float)logo_y, (float)LOGO_LARGURA_DESEJADA, (float)LOGO_ALTURA_DESEJADA },(Vector2){ 0, 0 }, 0.0f, WHITE);
             DrawText("Pressione ENTER para iniciar", (LARGURA - novo_jogo)/2, 200, 20, WHITE);
             DrawText("Pressione C para carregar jogo salvo", (LARGURA - carregar_jogo)/2, 240, 20, WHITE);
             DrawText("Pressione O para opções", (LARGURA - opcoes)/2, 280, 20, WHITE);
@@ -241,7 +248,7 @@ int main() {
         BeginDrawing();
         ClearBackground(AZUL_NOITE);
         
-        if(vidas == 0 || IsKeyDown(KEY_X)){
+        if(vidas == 0){
             ClearBackground(AZUL_MARINHO);
             
 
