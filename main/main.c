@@ -7,7 +7,7 @@
 int main() {
 
     // ~~~~ 1) Leitura do arquivo ~~~~ //
-    FILE *arq = fopen("mapa_pacman.txt", "r");
+    FILE *arq = fopen("mapa.txt", "r");
     if (arq == NULL) {
         printf("ERRO NA ABERTURA DO ARQUIVO\n");
         return 1;
@@ -37,7 +37,7 @@ int main() {
     tipo_objeto pacman;
     pacman.velocidade = 7.0f;
     tipo_posicao pos_inicial_pacman;
-
+   
     // Conta portais (T)
     int contadorT = 0;
     for (int i = 0; i < 20; i++)
@@ -49,6 +49,10 @@ int main() {
     Color AZUL_NOITE      = (Color){ 5, 25, 70, 255 };    
     Color AZUL_MARINHO    = (Color){ 0, 0, 80, 255 };     
     Color ROXO_ESCURO = (Color){ 40, 0, 100, 255 };
+
+    Texture2D textura_teleporte;
+    Texture2D textura_fantasma;
+
     int qnt_portais = 0;
     if (contadorT > 0) portais = malloc(contadorT * sizeof(tipo_posicao));
 
@@ -103,6 +107,9 @@ int main() {
     InitWindow(LARGURA, ALTURA + 40, "Pacman");
     srand(time(NULL));
     SetTargetFPS(60);
+
+    textura_teleporte = LoadTexture("teleporte.png");
+    textura_fantasma = LoadTexture("fantasma.png");
     double TempoInicio = 0.0;
     double TempoAtual = 0.0;
     // intervalo entre um desenho e outro
@@ -123,7 +130,7 @@ int main() {
     // Variáveis do Power-Up
     bool power_up_ativo = false;
     int power_up_timer = 0;
-    const int TEMPO_POWER_UP = 80; // considerei 8 segundos (ver esquema de velocidade para poder aumentar fps)
+    const int TEMPO_POWER_UP = 40; 
     
    
 
@@ -201,6 +208,7 @@ int main() {
 
         if (IsKeyPressed(KEY_TAB)) {
             jogo_pausado = true;
+            
         }
         
         if(IsKeyPressed(KEY_V)){
@@ -208,11 +216,14 @@ int main() {
         }
 
         if(power_up_ativo){
-            intervalo_fantasmas = 1.0f/5.0f;
+            intervalo_fantasmas = 1.0f/5.0f; 
+        } else {
+             intervalo_fantasmas = 1.0f/7.0f;
         }
-        contador_pacman += GetFrameTime();
-        contador_fantasmas += GetFrameTime();
-        
+        if(!jogo_pausado){
+            contador_pacman += GetFrameTime();
+            contador_fantasmas += GetFrameTime();
+        }
         float deslize_pacman = contador_pacman / intervalo_pacman;
         float deslize_fantasma  = contador_fantasmas /intervalo_fantasmas;
         
@@ -240,7 +251,67 @@ int main() {
             int Again = MeasureText("Pressione R para jogar novamente", 20);
             DrawText("Pressione R para jogar novamente", LARGURA/2 - Again/2+10, ALTURA/2, 20, GOLD);
             DrawRectangle(LARGURA/2 - Again/2, ALTURA/2 - 10 , Again +20, 40, Fade(GOLD, 0.5f));
-            
+        if (IsKeyPressed(KEY_R)) {
+            contador_fantasmas = 0;
+            // Reinicia o jogo
+            vidas = 3;
+            pontos = 0;
+            nivel = 1;
+            pellets = 0;
+
+            // 1) Zera fantasmas antigos
+            free(array_fantasmas);
+            array_fantasmas = NULL;
+            qnt_f = 0;
+
+            // 2) Varre o mapa de controle e reseta tudo
+            for (int i = 0; i < 20; i++) {
+                for (int j = 0; j < 41; j++) {
+
+            mapa[i][j] = controle[i][j];
+
+            if (controle[i][j] == '.' || controle[i][j] == 'o') {
+                pellets++;
+            }
+
+            // Recarrega PACMAN
+            if (controle[i][j] == 'P') {
+                pacman.posicao.linha = i;
+                pacman.posicao.coluna = j;
+
+                pos_inicial_pacman.linha = i;
+                pos_inicial_pacman.coluna = j;
+
+                pacman.posicao_anterior = pacman.posicao;
+                pacman.andar = false;
+                pacman.teleportado = false;
+            }
+
+            // **Recarrega FANTASMAS**
+            if (controle[i][j] == 'F') {
+
+                qnt_f++;
+                array_fantasmas = realloc(array_fantasmas, qnt_f * sizeof(tipo_objeto));
+
+                array_fantasmas[qnt_f - 1].tipo = FANTASMA;
+                array_fantasmas[qnt_f - 1].posicao.linha = i;
+                array_fantasmas[qnt_f - 1].posicao.coluna = j;
+
+                array_fantasmas[qnt_f - 1].posicao_anterior = array_fantasmas[qnt_f - 1].posicao;
+
+                array_fantasmas[qnt_f - 1].direcao_atual = CIMA;
+                array_fantasmas[qnt_f - 1].proxima_direcao = CIMA;
+
+                array_fantasmas[qnt_f - 1].andar = true;
+                array_fantasmas[qnt_f - 1].teleportado = false;
+
+                mapa[i][j] = ' ';   
+            }
+
+                    }
+                }
+                jogo_pausado = false;
+            }
             TempoAtual += GetFrameTime();
             if(TempoAtual > 8000.0){
                 EndDrawing();
@@ -304,9 +375,9 @@ int main() {
 }
 
 
-        DrawText(texto_pontuacao, 10, ALTURA - 15, 20, WHITE);
-        DrawText(texto_vida, 200, ALTURA - 15, 20, WHITE);
-        DrawText(texto_pellets, 350, ALTURA - 15, 20, WHITE);
+        DrawText(texto_pontuacao, 10, ALTURA+10, 20, WHITE);
+        DrawText(texto_vida, 215, ALTURA+10, 20, WHITE);
+        DrawText(texto_pellets, 350, ALTURA+10, 20, WHITE);
         int x = pacman.posicao.linha;
         int y = pacman.posicao.coluna;
         
@@ -320,7 +391,7 @@ int main() {
                     case '#': DrawRectangle(px , py , CELULA, CELULA, BLACK); break;
                     case '.': DrawCircle(px + CELULA/2 , py + CELULA/2 , 3, YELLOW); break;
                     case 'o': DrawCircle(px + CELULA/2 , py + CELULA/2 , 6, GREEN); break;
-                    case 'T': DrawCircle(px + CELULA/2 , py + CELULA/2 , 5, ORANGE); break;
+                    case 'T': DrawTexturePro(textura_teleporte, (Rectangle){ 0.0f, 0.0f, (float)textura_teleporte.width, (float)textura_teleporte.height }, (Rectangle){ (float)px, (float)py, (float)CELULA, (float)CELULA }, (Vector2){ 0, 0 }, 0.0f, WHITE); break;
                 }
             }
         }
@@ -340,7 +411,7 @@ int main() {
                 aux_fantasma_y = (array_fantasmas[i].posicao_anterior.linha * (1.0f - deslize_fantasma) + array_fantasmas[i].posicao.linha * deslize_fantasma) * CELULA;
             }
 
-            DrawRectangle(aux_fantasma_x , aux_fantasma_y , CELULA, CELULA, cor_fantasma);
+            DrawTexturePro(textura_fantasma, (Rectangle){ 0.0f, 0.0f, (float)textura_fantasma.width, (float)textura_fantasma.height }, (Rectangle){ (float)aux_fantasma_x, (float)aux_fantasma_y, (float)CELULA, (float)CELULA }, (Vector2){ 0.0f, 0.0f }, 0.0f, WHITE); 
         }
         
         
@@ -361,6 +432,8 @@ int main() {
         
 
          if (jogo_pausado) {
+             
+            
             int pause = MeasureText("Pressione TAB para pausar", 20);
             DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.50f));
             DrawText("JOGO PAUSADO",LARGURA/2-pause/2,60, 40, WHITE);
@@ -390,6 +463,7 @@ int main() {
             DrawRectangle(LARGURA/2-load+load+10+10, ALTURA/2+50 , back+20, 40, LIGHTGRAY);
             DrawText("Voltar ao Jogo(V)",LARGURA/2-load+load+10+10+10 , ALTURA/2 +50+ 10, 20, BLACK);
 
+            
             if (IsKeyPressed(KEY_N)) {
                 // Reinicia o jogo
                 vidas = 3;
@@ -450,6 +524,11 @@ int main() {
                     }
                     jogo_pausado = false;
                 }
+
+                if(IsKeyPressed(KEY_Q)) {
+            
+                    
+                }
         }
 
         EndDrawing();
@@ -507,10 +586,9 @@ int main() {
 
                 checar_teleporte(&pacman, portais, qnt_portais);
                 verificar_colisao_pacman_fantasma(&pacman, array_fantasmas, qnt_f, power_up_ativo, pos_inicial_pacman, &pontos, v);
-            
             }
-            }
-            if(contador_fantasmas >= intervalo_fantasmas){
+        }
+        if(contador_fantasmas >= intervalo_fantasmas){
                 contador_fantasmas -= intervalo_fantasmas;
                 for (int i = 0; i < qnt_f; i++) {
                     if (mapa[array_fantasmas[i].posicao.linha][array_fantasmas[i].posicao.coluna] != 'T') {
@@ -520,10 +598,11 @@ int main() {
                 for(int i = 0; i< qnt_f; i++){
                     array_fantasmas[i].posicao_anterior = array_fantasmas[i].posicao;
                 }
-                if(jogo_pausado){
+                if(!jogo_pausado){
                     if (power_up_ativo) {
                         power_up_timer--;
                         if (power_up_timer <= 0) {
+                            intervalo_fantasmas = 1.0f/7.0f;
                             power_up_ativo = false;
                         }
                     }
@@ -535,16 +614,16 @@ int main() {
                 //verificar_colisao_pacman_fantasma(&pacman, array_fantasmas, qnt_f, power_up_ativo, pos_inicial_pacman, &pontos );
 
             }
-        }
-    
-    
+            
+        
+    }
+
 
     // ~~~~ 6) Libera memória ~~~~ //
     CloseWindow();
+    UnloadTexture(textura_teleporte);
     free(array_fantasmas);
     free(portais);
     return 0;
 
 }
-
-
