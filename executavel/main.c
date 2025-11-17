@@ -7,7 +7,7 @@
 int main() {
 
     // ~~~~ 1) Leitura do arquivo ~~~~ //
-    FILE *arq = fopen("certo.txt", "r");
+    FILE *arq = fopen("mapa1.txt", "r");
     if (arq == NULL) {
         printf("ERRO NA ABERTURA DO ARQUIVO\n");
         return 1;
@@ -433,15 +433,11 @@ int main() {
                 origem_f = (Rectangle){ 0.0f, 0.0f, (float)textura_fantasma_nervoso.width, (float)textura_fantasma_nervoso.height };
                 DrawTexturePro(textura_fantasma_nervoso, origem_f, destino_f, origem_desenho_f, 0.0f, WHITE);
             }
-            else if (verificador_cor < 15 && power_up_timer % 2 == 0){
+            else if (power_up_timer< 15 && power_up_timer % 2 == 1){
                 origem_f = (Rectangle){ 0.0f, 0.0f, (float)textura_fantasma_nervoso.width, (float)textura_fantasma_nervoso.height };
                 DrawTexturePro(textura_fantasma_nervoso, origem_f, destino_f, origem_desenho_f, 0.0f, WHITE);
             }
-            else if (verificador_cor < 15 && power_up_timer % 2 == 1){
-                origem_f = (Rectangle){ 0.0f, 0.0f, (float)textura_fantasma_normal.width, (float)textura_fantasma_normal.height };
-                DrawTexturePro(textura_fantasma_normal, origem_f, destino_f, origem_desenho_f, 0.0f, WHITE);
-            }
-            else{
+            else if (power_up_timer < 15 && power_up_timer % 2 == 0){
                 origem_f = (Rectangle){ 0.0f, 0.0f, (float)textura_fantasma_normal.width, (float)textura_fantasma_normal.height };
                 DrawTexturePro(textura_fantasma_normal, origem_f, destino_f, origem_desenho_f, 0.0f, WHITE);
             }
