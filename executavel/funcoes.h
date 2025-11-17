@@ -1,13 +1,17 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <time.h>
 #include <stdbool.h>
 #include "raylib.h"
+#define max_saves 64
+
 
 typedef struct {
     int linha;
     int coluna;
 } tipo_posicao;
+
 
 typedef enum { CIMA, BAIXO, ESQUERDA, DIREITA } direcao;
 
@@ -198,11 +202,159 @@ void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fa
                 pacman->posicao = pos_inicial_pacman;
                 (*pontos_ptr) -= 200;
                 if (*pontos_ptr < 0) *pontos_ptr = 0;
-                *(v)-=1;
+                *(v) -= 1;
+        
                 
             }
         }
         
     }
+    }
+
+    void encontrar_proximo_nome_save(char *buffer) {
+        int numero_save = 1;
+        FILE *arq = NULL;
+
+        do {
+            
+            snprintf(buffer, max_saves, "saves/save%d.txt", numero_save);
+
+    
+            arq = fopen(buffer, "r");
+
+            if (arq != NULL) {
+                fclose(arq);
+                numero_save++;
+            }
+            
+        } while (arq != NULL);
+
+        printf("Salvando como: %s\n", buffer);
+    }
+
+    void salvar_jogo(const char mapa[20][41], int vidas, int pontos, int nivel, int pellets,tipo_objeto pacman, tipo_objeto *fantasmas, int qnt_f,bool power_up_ativo, int power_up_timer) {
+        
+        char nome_arquivo[max_saves];
+        encontrar_proximo_nome_save(nome_arquivo);
+
+        FILE *arq = fopen(nome_arquivo, "w");
+        if (arq == NULL) {
+            printf("Erro ao salvar jogo.\n");
+            return;
+        }
+        fprintf(arq, "%d %d %d %d %d %d\n", vidas, pontos, nivel, pellets, power_up_ativo, power_up_timer);
+                 
+        fprintf(arq, "%d %d %d %d %f %d %d\n", pacman.posicao.linha, pacman.posicao.coluna, pacman.direcao_atual, pacman.proxima_direcao, pacman.velocidade, pacman.andar, pacman.teleportado);
+        
+        fprintf(arq, "%d\n", qnt_f);
+        for (int i = 0; i < qnt_f; i++) {
+            fprintf(arq, "%d %d\n", fantasmas[i].posicao.linha, fantasmas[i].posicao.coluna);
+        }
+
+        fprintf(arq, "\n");
+        for (int j = 0; j < 20; j++) {
+            fprintf(arq, "%s\n", mapa[j]);
+        }
+        
+        fprintf(arq, "\n");
+
+        fclose(arq);
+        printf("JOGO SALVO COM SUCESSO!\n");
+
+    }
+
+    bool carregar_jogo(char mapa[20][41], int *vidas, int *pontos, int *nivel, int *pellets, tipo_objeto *pacman, tipo_objeto **fantasmas, int *qnt_f, bool *power_up_ativo, int *power_up_timer, const char *nome_arquivo) {
+
+        FILE *arq = fopen(nome_arquivo, "r");
+        if (arq == NULL) {
+            printf("ERRO: O arquivo de save '%s' não foi encontrado.\n", nome_arquivo);
+            return false;
+        }
+        
+        int temp_power_up_ativo;
+        int pacman_direcao_atual, pacman_proxima_direcao;
+        int pacman_andar, pacman_teleportado;
+        
+        if (fscanf(arq, "%d %d %d %d %d %d\n", 
+                vidas, pontos, nivel, pellets, 
+                &temp_power_up_ativo, power_up_timer) != 6) {
+            printf("ERRO: Dados de estado (pontuação/vidas/nível) incompletos.\n");
+            fclose(arq);
+            return false;
+        }
+        *power_up_ativo = (bool)temp_power_up_ativo;
+
+        if (fscanf(arq, "%d %d %d %d %f %d %d\n", 
+                &pacman->posicao.linha, &pacman->posicao.coluna, 
+                &pacman_direcao_atual, &pacman_proxima_direcao, 
+                &pacman->velocidade, 
+                &pacman_andar, &pacman_teleportado) != 7) {
+            printf("ERRO: Dados do Pac-Man incompletos.\n");
+            fclose(arq);
+            return false;
+        }
+
+        pacman->direcao_atual = (direcao)pacman_direcao_atual;
+        pacman->proxima_direcao = (direcao)pacman_proxima_direcao;
+        pacman->andar = (bool)pacman_andar;
+        pacman->teleportado = (bool)pacman_teleportado;
+        pacman->posicao_anterior = pacman->posicao; 
+
+        int nova_qnt_f;
+        if (fscanf(arq, "%d\n", &nova_qnt_f) != 1) {
+            printf("ERRO: Quantidade de fantasmas incompleta.\n");
+            fclose(arq);
+            return false;
+        }
+        
+        if (*fantasmas != NULL) free(*fantasmas);
+        *qnt_f = nova_qnt_f;
+        if (*qnt_f > 0) {
+            *fantasmas = (tipo_objeto*)malloc(*qnt_f * sizeof(tipo_objeto));
+        } else {
+            *fantasmas = NULL;
+        }
+
+        for (int i = 0; i < *qnt_f; i++) {
+
+            if (fscanf(arq, "%d %d\n", &(*fantasmas)[i].posicao.linha, &(*fantasmas)[i].posicao.coluna) != 2) {
+                printf("ERRO: Posição do fantasma %d incompleta.\n", i);
+                fclose(arq);
+                return false;
+            }
+
+            (*fantasmas)[i].posicao_anterior = (*fantasmas)[i].posicao;
+            (*fantasmas)[i].tipo = FANTASMA;
+            (*fantasmas)[i].velocidade = 7.0f; 
+            (*fantasmas)[i].andar = true; 
+            (*fantasmas)[i].teleportado = false;
+            (*fantasmas)[i].direcao_atual = CIMA; 
+            (*fantasmas)[i].proxima_direcao = CIMA;
+        }
+
+        for (int i = 0; i < 20; i++) {
+        
+        // 1. Tenta ler a linha (40 caracteres)
+        if (fgets(mapa[i], 41, arq) == NULL) {
+             printf("ERRO: Leitura do mapa incompleta na linha %d.\n", i);
+             fclose(arq);
+             return false;
+        }
+        
+        // 2. Garante que a string está terminada (o que é feito pelo fgets no índice 40)
+        mapa[i][40] = '\0'; 
+
+        // 3. DESCARGA O CARACTERE DE QUEBRA DE LINHA (\n) que sobrou no buffer.
+        // Isso garante que o próximo fgets comece a ler a linha seguinte do mapa.
+        if (fgetc(arq) != '\n') {
+            // Se cair aqui, a estrutura do seu arquivo de save está incorreta (linha de mapa não terminou em \n)
+            printf("AVISO: Estrutura do arquivo de save inesperada após a linha %d do mapa.\n", i);
+        }
+    }
+    
+    fclose(arq);
+    printf("JOGO CARREGADO COM SUCESSO! Nível: %d\n", *nivel);
+    return true;
 }
+
 
