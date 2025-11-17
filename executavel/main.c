@@ -135,6 +135,7 @@ int main() {
     bool power_up_ativo = false;
     int power_up_timer = 0;
     const int TEMPO_POWER_UP = 40; 
+    int verificador_cor = 40;
     
    
 
@@ -414,8 +415,6 @@ int main() {
         }
 
 
-        Color cor_fantasma = power_up_ativo ? RED : PURPLE; //cor vai depender do estado do fantasma
-
         for (int i = 0; i < qnt_f; i++) {
             
             float aux_fantasma_x, aux_fantasma_y;
@@ -430,10 +429,19 @@ int main() {
                 aux_fantasma_y = (array_fantasmas[i].posicao_anterior.linha * (1.0f - deslize_fantasma) + array_fantasmas[i].posicao.linha * deslize_fantasma) * CELULA;
             }
             
-            if(power_up_ativo){
+            if(power_up_timer >= 15){
                 origem_f = (Rectangle){ 0.0f, 0.0f, (float)textura_fantasma_nervoso.width, (float)textura_fantasma_nervoso.height };
                 DrawTexturePro(textura_fantasma_nervoso, origem_f, destino_f, origem_desenho_f, 0.0f, WHITE);
-            }else{
+            }
+            else if (verificador_cor < 15 && power_up_timer % 2 == 0){
+                origem_f = (Rectangle){ 0.0f, 0.0f, (float)textura_fantasma_nervoso.width, (float)textura_fantasma_nervoso.height };
+                DrawTexturePro(textura_fantasma_nervoso, origem_f, destino_f, origem_desenho_f, 0.0f, WHITE);
+            }
+            else if (verificador_cor < 15 && power_up_timer % 2 == 1){
+                origem_f = (Rectangle){ 0.0f, 0.0f, (float)textura_fantasma_normal.width, (float)textura_fantasma_normal.height };
+                DrawTexturePro(textura_fantasma_normal, origem_f, destino_f, origem_desenho_f, 0.0f, WHITE);
+            }
+            else{
                 origem_f = (Rectangle){ 0.0f, 0.0f, (float)textura_fantasma_normal.width, (float)textura_fantasma_normal.height };
                 DrawTexturePro(textura_fantasma_normal, origem_f, destino_f, origem_desenho_f, 0.0f, WHITE);
             }
@@ -628,6 +636,7 @@ int main() {
                 }
                 if(!jogo_pausado){
                     if (power_up_ativo) {
+                        verificador_cor--;
                         power_up_timer--;
                         if (power_up_timer <= 0) {
                             intervalo_fantasmas = 1.0f/7.0f;
