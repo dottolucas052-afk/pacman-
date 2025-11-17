@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <time.h>
 #include <stdbool.h>
@@ -119,6 +120,7 @@ int main() {
     // intervalo entre um desenho e outro
 
     bool jogo_pausado = false;
+    
     bool venceu = false;
     const float intervalo = 1.0f / 4.0f;
     float intervalo_pacman = 1.0f/pacman.velocidade;
@@ -142,8 +144,8 @@ int main() {
     //tela inicial
     bool Tela_inicial = true;
     int titulo = MeasureText("PACMAN", 60);
-    int novo_jogo = MeasureText("Pressione ENTER para iniciar", 20);
-    int carregar_jogo = MeasureText("Pressione C para carregar jogo salvo", 20);
+    int novo = MeasureText("Pressione ENTER para iniciar", 20);
+    int carregar = MeasureText("Pressione C para carregar jogo salvo", 20);
     int opcoes = MeasureText("Pressione O para opções", 20);
     int sair = MeasureText("Pressione ESC para sair", 20);
 
@@ -158,16 +160,16 @@ int main() {
 
             DrawTexturePro(textura_logo,(Rectangle){ 0.0f, 0.0f, (float)textura_logo.width, (float)textura_logo.height },(Rectangle){ (float)logo_x, (float)logo_y, (float)LOGO_LARGURA_DESEJADA, (float)LOGO_ALTURA_DESEJADA },(Vector2){ 0, 0 }, 0.0f, WHITE);
           
-            DrawRectangle((LARGURA - carregar_jogo)/2-20, 200 - 50, carregar_jogo +40, 40, Fade(GOLD, 0.5f));
-            DrawText("Pressione ENTER para iniciar", (LARGURA - novo_jogo)/2, 200-40, 20, WHITE);
+            DrawRectangle((LARGURA - carregar)/2-20, 200 - 50, carregar +40, 40, Fade(GOLD, 0.5f));
+            DrawText("Pressione ENTER para iniciar", (LARGURA - novo)/2, 200-40, 20, WHITE);
            
-            DrawRectangle((LARGURA - carregar_jogo)/2-20, 240 - 30, carregar_jogo +40, 40, Fade(GOLD, 0.5f));
-            DrawText("Pressione C para carregar jogo salvo", (LARGURA - carregar_jogo)/2, 240-20, 20, WHITE);
+            DrawRectangle((LARGURA - carregar)/2-20, 240 - 30, carregar +40, 40, Fade(GOLD, 0.5f));
+            DrawText("Pressione C para carregar jogo salvo", (LARGURA - carregar)/2, 240-20, 20, WHITE);
 
-            DrawRectangle((LARGURA - carregar_jogo)/2-20, 280 - 10, carregar_jogo +40, 40, Fade(GOLD, 0.5f));
+            DrawRectangle((LARGURA - carregar)/2-20, 280 - 10, carregar +40, 40, Fade(GOLD, 0.5f));
             DrawText("Pressione O para opções", (LARGURA - opcoes)/2, 280, 20, WHITE);
 
-            DrawRectangle((LARGURA - carregar_jogo)/2-20, 320 + 10, carregar_jogo +40, 40, Fade(GOLD, 0.5f));
+            DrawRectangle((LARGURA - carregar)/2-20, 320 + 10, carregar +40, 40, Fade(GOLD, 0.5f));
             DrawText("Pressione ESC para sair", (LARGURA - sair)/2, 320+20, 20, WHITE);
         EndDrawing();
         if (IsKeyPressed(KEY_ENTER)) {
@@ -557,10 +559,32 @@ int main() {
                     jogo_pausado = false;
                 }
 
-                if(IsKeyPressed(KEY_Q)) {
-            
+                if(IsKeyPressed(KEY_S)) {
+                    salvar_jogo(mapa, vidas, pontos, nivel, pellets, pacman, array_fantasmas, qnt_f, power_up_ativo, power_up_timer);
                     
                 }
+                if (IsKeyPressed(KEY_C)) {
+                // Para carregar o save mais recente, você pode simplesmente tentar
+                // carregar o save1.txt ou save2.txt... Ou usar um prompt.
+                
+                char nome_arquivo_para_carregar[64];
+                // Exemplo Simplificado: Carregar save1.txt
+                strcpy(nome_arquivo_para_carregar, "saves/save1.txt"); 
+
+                // Chame a função carregar_jogo
+                if (carregar_jogo(mapa, &vidas, &pontos, &nivel, &pellets, &pacman, &array_fantasmas, &qnt_f, &power_up_ativo, &power_up_timer, nome_arquivo_para_carregar)) {
+                    
+                    // Se o carregamento foi bem-sucedido, despausa o jogo
+                    jogo_pausado = false; 
+                    contador_fantasmas = 0.0f; // Zera contadores de animação
+                    contador_pacman = 0.0f;
+                    
+                    // (Opcional) Ajustar rotação inicial do Pac-Man visualmente
+                    // Dependendo da direção salva.
+                } else {
+                    // Arquivo não encontrado ou erro de leitura
+                }
+            }
         }
 
         EndDrawing();
@@ -660,7 +684,6 @@ int main() {
     return 0;
 
 }
-
 
 
 
