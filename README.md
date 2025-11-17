@@ -1,23 +1,23 @@
 Prioridades
-- Spawn fantasmas 
-- funções do menu	
-	-Abrir Menu - TAB 👍
-	-novo jogo - N 👍
-	-Carregar jogo - C
-	-Salvar jogo - S
-	-Sair do jogo - Q👍
-	-Voltar - V 👍
-- Tela inicial 👍 (design?)
-- níveis 👍
-- controle de vidas👍
-- controle de níveis👍
-- contador de pellets👍
-- portais
-- Velocidade - Normal(8 blocos por segundo) | pellet(3 Blocos por segundo) 👍
+- Spawn fantasmas (Guilherme)
+  - morte do pacman (Guilherme)
+  - respawn dos fantasmas a partir do segundo nível (Guilherme)
 
-Checar:
-(Lucas e Guilherme)
-- Área jogável
-- Área da janela
-- Velocidade
-- Física
+- funções do menu 
+	-Carregar jogo - C (Leo)
+	-Salvar jogo - S (X) 
+	-Sair do jogo - Q👍
+
+- portais (Lucas Daniel) - obs(Teleporte dos fantasmas)
+- colisão (Ld)
+- efeito sonoro (JOao)
+  -moedas
+  -morte pacman
+  -morte fantasmas
+  -gameover
+  -próximo nível
+
+- musica ()
+- animações (Ld)
+- fruta (Lucas Daniel)
+- elaborar níveis (Ld)
