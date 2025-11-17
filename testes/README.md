@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -25,6 +26,7 @@ typedef struct {
     float velocidade;
     bool andar;
     bool teleportado;
+    bool esta_vivo; // <-- Modificação
 } tipo_objeto;
 
 
@@ -38,12 +40,17 @@ bool colidiu_com_parede(tipo_objeto personagem, direcao d, char mapa[20][41]);
 bool colidiu_com_fantasma(tipo_objeto *personagem, direcao d, tipo_objeto array_fantasmas[], int qnt_f);
 int direcoes_livres_avaliar(tipo_objeto personagem, tipo_objeto array_fantasmas[], int qnt_f, char mapa[20][41], direcao livres[4], bool evitar_reversao);
 void mover_fantasma(tipo_objeto *fantasma, tipo_objeto array_fantasmas[], int qnt_f, char mapa[20][41]);
+tipo_posicao checar_teleporte(tipo_objeto *personagem, tipo_posicao portais[], int qnt_portais);
+void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fantasmas[], int qnt_f, bool power_up_ativo, tipo_posicao pos_inicial_pacman, int *pontos_ptr, int *v);
 
 
 // ----------------------
 // Implementação das funções
 // ----------------------
 void mover_para(tipo_objeto *personagem, direcao d) {
+    
+    if (!personagem->esta_vivo) return; 
+
     switch (d) {
         case CIMA: personagem->posicao.linha--; break;
         case BAIXO: personagem->posicao.linha++; break;
@@ -84,9 +91,12 @@ bool colidiu_com_parede(tipo_objeto personagem, direcao d, char mapa[20][41]) {
 bool colidiu_com_fantasma(tipo_objeto *personagem, direcao d, tipo_objeto array_fantasmas[], int qnt_f) {
     tipo_posicao p = verificar(*personagem, d);
     for (int i = 0; i < qnt_f; i++) {
-        if (array_fantasmas[i].posicao.linha == p.linha && array_fantasmas[i].posicao.coluna == p.coluna){
-            if(&array_fantasmas[i]==personagem) continue; // ignora o próprio fantasma
-            return true;
+        
+        if (array_fantasmas[i].esta_vivo) {
+            if (array_fantasmas[i].posicao.linha == p.linha && array_fantasmas[i].posicao.coluna == p.coluna){
+                if(&array_fantasmas[i]==personagem) continue; // ignora o próprio fantasma
+                return true;
+            }
         }
     }
     return false;
@@ -118,6 +128,9 @@ int direcoes_livres_avaliar(tipo_objeto personagem, tipo_objeto array_fantasmas[
 }
 
 void mover_fantasma(tipo_objeto *fantasma, tipo_objeto array_fantasmas[], int qnt_f, char mapa[20][41]) {
+    
+    if (!fantasma->esta_vivo) return;
+
     direcao livres[4];
     int total_livre;
 
@@ -155,6 +168,9 @@ void mover_fantasma(tipo_objeto *fantasma, tipo_objeto array_fantasmas[], int qn
 }
 
 tipo_posicao checar_teleporte(tipo_objeto *personagem, tipo_posicao portais[], int qnt_portais) {
+    
+    if (!personagem->esta_vivo) return personagem->posicao;
+
     for (int i = 0; i < qnt_portais; i++) {
         if (personagem->posicao.linha == portais[i].linha && personagem->posicao.coluna == portais[i].coluna && personagem->teleportado == false) {
             if (portais[i].coluna<=2||portais[i].coluna>=37){
@@ -182,27 +198,29 @@ tipo_posicao checar_teleporte(tipo_objeto *personagem, tipo_posicao portais[], i
 
 void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fantasmas[], int qnt_f, bool power_up_ativo, tipo_posicao pos_inicial_pacman, int *pontos_ptr, int *v) {
     for(int i = 0; i< qnt_f; i++){
-        bool colisao = (pacman->posicao.linha == array_fantasmas[i].posicao.linha && pacman->posicao.coluna == array_fantasmas[i].posicao.coluna);
-        bool troca = (pacman->posicao_anterior.linha == array_fantasmas[i].posicao.linha && pacman->posicao_anterior.coluna == array_fantasmas[i].posicao.coluna 
-        && array_fantasmas[i].posicao_anterior.linha == pacman->posicao.linha && array_fantasmas[i].posicao_anterior.coluna == pacman->posicao.coluna);
-        if(troca||colisao){
-             if (power_up_ativo) {
 
-                array_fantasmas[i].posicao.linha = 0;
-                array_fantasmas[i].posicao.coluna = 0;
-                (*pontos_ptr) += 100;
-                //Lógica de pontuação 
-                
-                
-            } else {
-                pacman->posicao = pos_inicial_pacman;
-                (*pontos_ptr) -= 200;
-                if (*pontos_ptr < 0) *pontos_ptr = 0;
-                *(v)-=1;
-                
+        if (array_fantasmas[i].esta_vivo) {
+
+            bool colisao = (pacman->posicao.linha == array_fantasmas[i].posicao.linha && pacman->posicao.coluna == array_fantasmas[i].posicao.coluna);
+            bool troca = (pacman->posicao_anterior.linha == array_fantasmas[i].posicao.linha && pacman->posicao_anterior.coluna == array_fantasmas[i].posicao.coluna 
+            && array_fantasmas[i].posicao_anterior.linha == pacman->posicao.linha && array_fantasmas[i].posicao_anterior.coluna == pacman->posicao.coluna);
+            
+            if(troca||colisao){
+                 if (power_up_ativo) {
+
+                    array_fantasmas[i].esta_vivo = false; 
+                    (*pontos_ptr) += 100;
+                    
+                } else {
+                    pacman->posicao = pos_inicial_pacman;
+                    pacman->posicao_anterior = pacman->posicao; 
+                    pacman->teleportado = true;
+                    (*pontos_ptr) -= 200;
+                    if (*pontos_ptr < 0) *pontos_ptr = 0;
+                    *(v)-=1;
+                    
+                }
             }
         }
-        
     }
 }
-
