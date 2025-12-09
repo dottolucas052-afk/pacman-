@@ -1,6 +1,5 @@
 Obrigatório:
-- funções do menu 
-	-Salvar jogo - S (X) 
+
 
 
 - níveis (Ld)
