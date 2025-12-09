@@ -1,15 +1,20 @@
-Prioridades
-- Spawn fantasmas (Guilherme)
-  - morte do pacman (Guilherme)
-  - respawn dos fantasmas a partir do segundo nível (Guilherme)
-
+Obrigatório:
 - funções do menu 
 	-Carregar jogo - C (Leo)
 	-Salvar jogo - S (X) 
 	-Sair do jogo - Q👍
 
+- níveis (Ld)
+- Ranking (Quem acabar pega)
+---------------------------------------------------------------
+
+Prioridades
+- Spawn fantasmas (Guilherme)
+  - morte do pacman (Guilherme)
+  - respawn dos fantasmas a partir do segundo nível (Guilherme)
+
+
 - portais (Lucas Daniel) - obs(Teleporte dos fantasmas)
-- colisão (Ld)
 - efeito sonoro (JOao)
   -moedas
   -morte pacman
@@ -19,5 +24,4 @@ Prioridades
 
 - musica ()
 - animações (Ld)
-- fruta (Lucas Daniel)
-- elaborar níveis (Ld)
+- Sprite fruta (Lucas Daniel)
