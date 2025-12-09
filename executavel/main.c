@@ -154,6 +154,9 @@ int main() {
     int logo_x = (LARGURA - LOGO_LARGURA_DESEJADA) / 2;
     int logo_y = 20;
 
+
+    bool jogo_rodando = true;
+    while (jogo_rodando && !WindowShouldClose()) {
     while(Tela_inicial && !WindowShouldClose()){
         BeginDrawing();
             ClearBackground(AZUL_MARINHO);
@@ -224,6 +227,8 @@ int main() {
 
     // pellets = 10;
     // ~~~~ 5) Loop principal ~~~~ //
+
+
     while (!WindowShouldClose()) {
 
         if (IsKeyPressed(KEY_TAB)) {
@@ -332,6 +337,8 @@ int main() {
                 }
                 jogo_pausado = false;
             }
+
+
             TempoAtual += GetFrameTime();
             if(TempoAtual > 8000.0){
                 EndDrawing();
@@ -585,6 +592,88 @@ int main() {
                     // Arquivo não encontrado ou erro de leitura
                 }
             }
+            if (IsKeyPressed(KEY_Q)) {
+
+                // --- Reinicia variáveis globais ---
+                vidas = 3;
+                pontos = 0;
+                nivel = 1;
+                pellets = 0;
+
+                // Libera fantasmas antigos
+                free(array_fantasmas);
+                array_fantasmas = NULL;
+                qnt_f = 0;
+
+                // Primeiro: contar quantos fantasmas o mapa possui
+                int novos_fantasmas = 0;
+                for (int i = 0; i < 20; i++) {
+                    for (int j = 0; j < 41; j++) {
+                        if (controle[i][j] == 'F')
+                            novos_fantasmas++;
+                    }
+                }
+
+                // Alocar todos de uma vez
+                if (novos_fantasmas > 0) {
+                    array_fantasmas = malloc(novos_fantasmas * sizeof(tipo_objeto));
+                    qnt_f = novos_fantasmas;
+                }
+
+                int idx_f = 0;
+
+                // Agora varrer o mapa e restaurar tudo
+                for (int i = 0; i < 20; i++) {
+                    for (int j = 0; j < 41; j++) {
+
+                        mapa[i][j] = controle[i][j];
+
+                        // Conta pellets
+                        if (controle[i][j] == '.' || controle[i][j] == 'o') {
+                            pellets++;
+                        }
+
+                        // --- Restaurar PACMAN ---
+                        if (controle[i][j] == 'P') {
+                            pacman.posicao.linha = i;
+                            pacman.posicao.coluna = j;
+
+                            pos_inicial_pacman = pacman.posicao;
+
+                            pacman.posicao_anterior = pacman.posicao;
+                            pacman.andar = false;
+                            pacman.teleportado = false;
+                        }
+
+                        // --- Restaurar FANTASMAS ---
+                        if (controle[i][j] == 'F') {
+
+                            array_fantasmas[idx_f].tipo = FANTASMA;
+
+                            array_fantasmas[idx_f].posicao.linha = i;
+                            array_fantasmas[idx_f].posicao.coluna = j;
+
+                            array_fantasmas[idx_f].posicao_anterior =
+                                array_fantasmas[idx_f].posicao;
+
+                            array_fantasmas[idx_f].direcao_atual = CIMA;
+                            array_fantasmas[idx_f].proxima_direcao = CIMA;
+
+                            array_fantasmas[idx_f].andar = true;
+                            array_fantasmas[idx_f].teleportado = false;
+
+                            idx_f++;
+                            mapa[i][j] = ' '; // remove F do mapa renderizado
+                        }
+                    }
+                }
+
+                // Voltar para a tela inicial
+                Tela_inicial = true;
+                jogo_pausado = false;
+                break;
+            }
+
         }
 
         EndDrawing();
@@ -674,7 +763,7 @@ int main() {
             
         
     }
-
+    }
 
     // ~~~~ 6) Libera memória ~~~~ //
     CloseWindow();
