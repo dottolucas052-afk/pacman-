@@ -1,8 +1,7 @@
 Obrigatório:
 - funções do menu 
-	-Carregar jogo - C (Leo)
 	-Salvar jogo - S (X) 
-	-Sair do jogo - Q👍
+
 
 - níveis (Ld)
 - Ranking (Quem acabar pega)
