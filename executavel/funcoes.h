@@ -4,7 +4,7 @@
 #include <time.h>
 #include <stdbool.h>
 #include "raylib.h"
-#define max_saves 64
+
 
 
 typedef struct {
@@ -211,33 +211,12 @@ void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fa
     }
     }
 
-    void encontrar_proximo_nome_save(char *buffer) {
-        int numero_save = 1;
-        FILE *arq = NULL;
-
-        do {
-            
-            snprintf(buffer, max_saves, "saves/save%d.txt", numero_save);
-
     
-            arq = fopen(buffer, "r");
-
-            if (arq != NULL) {
-                fclose(arq);
-                numero_save++;
-            }
-            
-        } while (arq != NULL);
-
-        printf("Salvando como: %s\n", buffer);
-    }
 
     void salvar_jogo(const char mapa[20][41], int vidas, int pontos, int nivel, int pellets,tipo_objeto pacman, tipo_objeto *fantasmas, int qnt_f,bool power_up_ativo, int power_up_timer) {
         
-        char nome_arquivo[max_saves];
-        encontrar_proximo_nome_save(nome_arquivo);
 
-        FILE *arq = fopen(nome_arquivo, "w");
+        FILE *arq = fopen("saves/save1.txt", "w");
         if (arq == NULL) {
             printf("Erro ao salvar jogo.\n");
             return;
@@ -353,7 +332,7 @@ void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fa
     }
     
     fclose(arq);
-    printf("JOGO CARREGADO COM SUCESSO! Nível: %d\n", *nivel);
+    printf("JOGO CARREGADO COM SUCESSO! Nivel: %d\n", *nivel);
     return true;
 }
 
