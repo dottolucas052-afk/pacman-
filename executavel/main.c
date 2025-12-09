@@ -175,25 +175,41 @@ int main() {
             DrawRectangle((LARGURA - carregar)/2-20, 320 + 10, carregar +40, 40, Fade(GOLD, 0.5f));
             DrawText("Pressione ESC para sair", (LARGURA - sair)/2, 320+20, 20, WHITE);
         EndDrawing();
+
         if (IsKeyPressed(KEY_ENTER)) {
         Tela_inicial = false;
-    }
-    else if (IsKeyPressed(KEY_C)) {
-        // Lógica para carregar jogo salvo
-        Tela_inicial = false;
-    }
-    else if (IsKeyPressed(KEY_O)) {
-        // Lógica para opções
-        // Se der tempo
-        Tela_inicial = false;
-    }
+        }
+
+        else if (IsKeyPressed(KEY_C)) {
     
-    else if (WindowShouldClose()) {//permite sair durante loading
-        CloseWindow();
-        free(array_fantasmas);
-        free(portais);
-        return 0;
-    }
+            Tela_inicial = false;
+            if (carregar_jogo(mapa, &vidas, &pontos, &nivel, &pellets, &pacman, &array_fantasmas, &qnt_f, &power_up_ativo, &power_up_timer, "saves/save1.txt")) {
+                    
+                // Se o carregamento foi bem-sucedido, despausa o jogo
+                jogo_pausado = false; 
+                contador_fantasmas = 0.0f; // Zera contadores de animação
+                contador_pacman = 0.0f;
+                    
+                // (Opcional) Ajustar rotação inicial do Pac-Man visualmente
+                // Dependendo da direção salva.
+            } 
+            else {
+                printf("Falha ao carregar o jogo do arquivo: %s\n", "saves/save1.txt");
+            }
+        }
+
+        else if (IsKeyPressed(KEY_O)) {
+            // Lógica para opções
+            // Se der tempo
+            Tela_inicial = false;
+        }
+    
+        else if (WindowShouldClose()) {//permite sair durante loading
+            CloseWindow();
+            free(array_fantasmas);
+            free(portais);
+            return 0;
+        }
     }
     
 
@@ -571,15 +587,13 @@ int main() {
                     
                 }
                 if (IsKeyPressed(KEY_C)) {
-                // Para carregar o save mais recente, você pode simplesmente tentar
-                // carregar o save1.txt ou save2.txt... Ou usar um prompt.
-                
+           
                 char nome_arquivo_para_carregar[64];
                 // Exemplo Simplificado: Carregar save1.txt
                 strcpy(nome_arquivo_para_carregar, "saves/save1.txt"); 
 
                 // Chame a função carregar_jogo
-                if (carregar_jogo(mapa, &vidas, &pontos, &nivel, &pellets, &pacman, &array_fantasmas, &qnt_f, &power_up_ativo, &power_up_timer, nome_arquivo_para_carregar)) {
+                if (carregar_jogo(mapa, &vidas, &pontos, &nivel, &pellets, &pacman, &array_fantasmas, &qnt_f, &power_up_ativo, &power_up_timer, "saves/save1.txt")) {
                     
                     // Se o carregamento foi bem-sucedido, despausa o jogo
                     jogo_pausado = false; 
@@ -589,7 +603,7 @@ int main() {
                     // (Opcional) Ajustar rotação inicial do Pac-Man visualmente
                     // Dependendo da direção salva.
                 } else {
-                    // Arquivo não encontrado ou erro de leitura
+                    printf("Falha ao carregar o jogo do arquivo: %s\n", nome_arquivo_para_carregar);
                 }
             }
             if (IsKeyPressed(KEY_Q)) {
