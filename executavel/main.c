@@ -8,6 +8,7 @@
 
 int main() {
     int nivel = 1;
+    int cont_som = 0;
     FILE *arq = NULL;
     tipo_objeto *array_fantasmas = NULL;
     int qnt_f = 0;
@@ -26,7 +27,8 @@ int main() {
 
     // Carrega o primeiro mapa
     inicializar_mapa(arq, &nivel, &array_fantasmas, mapa, controle, &qnt_portais, &qnt_f, &pellets, &pacman, &pos_inicial_pacman, &portais);
-    
+    for(int i = 0; i<qnt_f; i++) array_fantasmas[i].posicao_inicial = array_fantasmas[i].posicao;
+
     Color AZUL_ESCURO = (Color){ 0, 40, 100, 255 };   
     Color AZUL_NOITE      = (Color){ 5, 25, 70, 255 };    
     Color AZUL_MARINHO    = (Color){ 0, 0, 80, 255 };     
@@ -56,11 +58,10 @@ int main() {
     Texture2D textura_pacman = LoadTexture("sprites/pacman.gif");
     Texture2D textura_teleporte = LoadTexture("sprites/teleporte.png");
     Texture2D textura_logo = LoadTexture("sprites/logo.png");
-
-    Sound som_moeda = LoadSound("sons/pacman_chom.wav")
-    Sound som_morte_pacman = LoadSound("sons/pacman_deaths.wav")
-    Sound som_gameover = LoadSound("sons/gameover.wav")
-    Sound som_proximo_nivel = LoadSound("sons/pacman_ringtone.mp3")
+    Sound som_moeda = LoadSound("sons/pacman_chomp.wav");
+    Sound som_morte_pacman = LoadSound("sons/pacman_death.wav");
+    Sound som_gameover = LoadSound("sons/pacman_death.wav");
+    Sound som_proximo_nivel = LoadSound("sons/pacman_ringtone.mp3");
 
     double TempoInicio = 0.0;
     double TempoAtual = 0.0;
@@ -176,6 +177,11 @@ int main() {
 
             // --- LÓGICA DE MORTE COM DELAY ---
             if (pacman_morrendo) {
+                
+                if(cont_som < 1){
+                    PlaySound(som_morte_pacman); 
+                    cont_som++;
+                }
                 timer_morte_pacman -= GetFrameTime();
                 if (timer_morte_pacman <= 0.0f) {
                     vidas--;
@@ -184,8 +190,22 @@ int main() {
                     pacman.andar = false;
                     pacman.direcao_atual = DIREITA; 
                     pacman_rotacao = 0.0f;
+                    cont_som = 0;
                     pacman_morrendo = false; 
                 }
+                if(timer_morte_pacman >= 0){
+                    for(int i = 0; i<qnt_f; i++){
+                        array_fantasmas[i].posicao = array_fantasmas[i].posicao_inicial;
+                        array_fantasmas[i].posicao_anterior = array_fantasmas[i].posicao_inicial;
+
+                        array_fantasmas[i].ativo = true;
+                        array_fantasmas[i].teleportado = false;
+                        array_fantasmas[i].direcao_atual = CIMA; 
+                        array_fantasmas[i].proxima_direcao = CIMA;
+                        array_fantasmas[i].timer_respawn = 0.0f;
+                    }
+                }
+            
             }
 
             if(power_up_ativo){
@@ -251,7 +271,10 @@ int main() {
             ClearBackground(AZUL_NOITE);
             
             if(vidas == 0){
-                PlaySound(som_gameover);
+                if(cont_som < 1){
+                    PlaySound(som_gameover);
+                    cont_som++;
+                }
                 ClearBackground(AZUL_MARINHO);
                 int GameOver = MeasureText("Você Perdeu :(", 40);
                 DrawText("Você Perdeu :(", LARGURA/2 - GameOver/2, ALTURA/3, 40, YELLOW);
@@ -271,8 +294,10 @@ int main() {
                     power_up_ativo = false;
                             
                     inicializar_mapa(arq, &nivel, &array_fantasmas, mapa, controle, &qnt_portais, &qnt_f, &pellets, &pacman, &pos_inicial_pacman, &portais);
-                    
+                    for(int i = 0; i<qnt_f; i++) array_fantasmas[i].posicao_inicial = array_fantasmas[i].posicao;
+
                     jogo_pausado = false;
+                    cont_som = 0;
                 }
                     
                 TempoAtual += GetFrameTime();
@@ -389,6 +414,8 @@ int main() {
                     nivel = 1;
                     pellets = 0;
                     inicializar_mapa(arq, &nivel, &array_fantasmas, mapa, controle, &qnt_portais, &qnt_f, &pellets, &pacman, &pos_inicial_pacman, &portais);
+                    for(int i = 0; i<qnt_f; i++) array_fantasmas[i].posicao_inicial = array_fantasmas[i].posicao;
+                    cont_som = 0;
                     jogo_pausado = false;
                     power_up_ativo = false;
                     power_up_timer = 0;
@@ -500,7 +527,7 @@ int main() {
                     if (!pacman_morrendo) {
                          verificar_colisao_pacman_fantasma(&pacman, array_fantasmas, qnt_f, power_up_ativo, pos_inicial_pacman, &pontos, v, controle, nivel, &pacman_morrendo);
                          if (pacman_morrendo) timer_morte_pacman = TEMPO_MORTE;
-                        PlaySound(som_morte_pacman); 
+                        // PlaySound(som_morte_pacman); 
                     }
                 }
             }
@@ -548,6 +575,7 @@ int main() {
     if(portais) free(portais);
     return 0;
 }
+
 
 
 
