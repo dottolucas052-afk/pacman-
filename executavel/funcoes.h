@@ -22,6 +22,7 @@ typedef struct {
     TipoEntidade tipo;
     tipo_posicao posicao;
     tipo_posicao posicao_anterior;
+    tipo_posicao posicao_inicial;
     direcao direcao_atual;
     direcao proxima_direcao;
     float velocidade;
@@ -405,4 +406,5 @@ void inicializar_mapa(FILE *arq, int *nivel, tipo_objeto **array_fantasmas, char
 }
 
 #endif
+
 
