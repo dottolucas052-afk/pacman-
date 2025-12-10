@@ -428,7 +428,7 @@ int main() {
                 aux_fantasma_y = (array_fantasmas[i].posicao_anterior.linha * (1.0f - deslize_fantasma) + array_fantasmas[i].posicao.linha * deslize_fantasma) * CELULA;
             }
             
-            if(power_up_timer >= 15){
+            if(power_up_timer >= 15 ){
                 origem_f = (Rectangle){ 0.0f, 0.0f, (float)textura_fantasma_nervoso.width, (float)textura_fantasma_nervoso.height };
                 DrawTexturePro(textura_fantasma_nervoso, origem_f, destino_f, origem_desenho_f, 0.0f, WHITE);
             }
@@ -551,9 +551,12 @@ int main() {
                     mapa[i][j] = ' ';   
                 }
 
-                        }
                     }
-                    jogo_pausado = false;
+                }
+                
+                jogo_pausado = false;
+                power_up_ativo = false;
+                power_up_timer = 0;
                 }
 
                 if(IsKeyPressed(KEY_S)) {
