@@ -6,9 +6,12 @@
 #include "raylib.h"
 #include "funcoes.h"
 int main() {
-
+    int nivel = 1;
+    // int contp = 15;
     // ~~~~ 1) Leitura do arquivo ~~~~ //
-    FILE *arq = fopen("mapa1.txt", "r");
+    char texto_mapa[10];
+    snprintf(texto_mapa, sizeof(texto_mapa), "mapa%d.txt", nivel);
+    FILE *arq = fopen(texto_mapa, "r");
     if (arq == NULL) {
         printf("ERRO NA ABERTURA DO ARQUIVO\n");
         return 1;
@@ -34,7 +37,6 @@ int main() {
     int pellets = 0;
     int vidas = 3;
     int *v = &vidas;
-    int nivel = 1;
     tipo_objeto pacman;
     pacman.velocidade = 7.0f;
     tipo_posicao pos_inicial_pacman;
@@ -294,66 +296,38 @@ int main() {
             DrawRectangle(LARGURA/2 - Again/2, ALTURA/2 - 10 , Again +20, 40, Fade(GOLD, 0.5f));
         if (IsKeyPressed(KEY_R)) {
             contador_fantasmas = 0;
-            // Reinicia o jogo
+            contador_pacman = 0;
+
+            if (array_fantasmas != NULL) {
+                    free(array_fantasmas);
+                    array_fantasmas = NULL;
+                }
+                if (portais != NULL) {
+                    free(portais);
+                    portais = NULL;
+                }
+
+                    // 3) Reseta as variáveis do jogo
             vidas = 3;
             pontos = 0;
             nivel = 1;
             pellets = 0;
-
-            // 1) Zera fantasmas antigos
-            free(array_fantasmas);
-            array_fantasmas = NULL;
             qnt_f = 0;
+            qnt_portais = 0;
+            power_up_ativo = false;
+                    
+                    
+            inicializar_mapa(arq, &nivel, &array_fantasmas, mapa, &qnt_portais, &qnt_f, &pellets, &pacman, &pos_inicial_pacman, &portais);
 
-            // 2) Varre o mapa de controle e reseta tudo
-            for (int i = 0; i < 20; i++) {
-                for (int j = 0; j < 41; j++) {
-
-            mapa[i][j] = controle[i][j];
-
-            if (controle[i][j] == '.' || controle[i][j] == 'o') {
-                pellets++;
-            }
-
-            // Recarrega PACMAN
-            if (controle[i][j] == 'P') {
-                pacman.posicao.linha = i;
-                pacman.posicao.coluna = j;
-
-                pos_inicial_pacman.linha = i;
-                pos_inicial_pacman.coluna = j;
-
-                pacman.posicao_anterior = pacman.posicao;
-                pacman.andar = false;
-                pacman.teleportado = false;
-            }
-
-            // **Recarrega FANTASMAS**
-            if (controle[i][j] == 'F') {
-
-                qnt_f++;
-                array_fantasmas = realloc(array_fantasmas, qnt_f * sizeof(tipo_objeto));
-
-                array_fantasmas[qnt_f - 1].tipo = FANTASMA;
-                array_fantasmas[qnt_f - 1].posicao.linha = i;
-                array_fantasmas[qnt_f - 1].posicao.coluna = j;
-
-                array_fantasmas[qnt_f - 1].posicao_anterior = array_fantasmas[qnt_f - 1].posicao;
-
-                array_fantasmas[qnt_f - 1].direcao_atual = CIMA;
-                array_fantasmas[qnt_f - 1].proxima_direcao = CIMA;
-
-                array_fantasmas[qnt_f - 1].andar = true;
-                array_fantasmas[qnt_f - 1].teleportado = false;
-
-                mapa[i][j] = ' ';   
-            }
-
-                    }
+            for(int x = 0; x < 20; x++){
+                for(int y = 0; y < 41; y++){
+                    controle[x][y] = mapa[x][y];
                 }
+            }
+
                 jogo_pausado = false;
             }
-
+                
 
             TempoAtual += GetFrameTime();
             if(TempoAtual > 8000.0){
@@ -376,7 +350,7 @@ int main() {
         TempoAtual += GetFrameTime();
     }
 
-    // pellets = 30;
+    pellets = 0;
     for (int i = 0, qnt = 0; i < 20; i++) {
         for (int j = 0; j < 41; j++) {
             mapa[i][j] = controle[i][j];
@@ -722,15 +696,81 @@ int main() {
                 int y = pacman.posicao.coluna;
 
                 if (mapa[x][y] == '.') {
+                    // contp--;
                     pellets--;
                     mapa[x][y] = ' '; 
                     pontos += 10;
                     if((pellets == 0 && !venceu) || IsKeyPressed(KEY_K)){
-                        nivel++;
-                        venceu = true;
-                        TempoInicio = GetTime();
-                    }
-                } else if (mapa[x][y] == 'o') {
+                            nivel++;
+                            char nome_proximo_mapa[20];
+                            snprintf(nome_proximo_mapa, sizeof(nome_proximo_mapa), "mapa%d.txt", nivel);
+                            FILE *teste_mapa = fopen(nome_proximo_mapa, "r");
+                            if (teste_mapa == NULL) {
+                                double tempo_inicio_tela = GetTime();
+                                while (GetTime() - tempo_inicio_tela < 5.0) {
+                                    BeginDrawing();
+                                        ClearBackground(BLACK);
+                                        const char *mensagem = "PARABÉNS! JOGO FINALIZADO!";
+                                        const char *submensagem = "Obrigado por jogar.";
+                                        
+                                        int largura_msg = MeasureText(mensagem, 30);
+                                        int largura_sub = MeasureText(submensagem, 20);
+                                        int centro_x = GetScreenWidth() / 2;
+                                        int centro_y = GetScreenHeight() / 2;
+
+                                        DrawText(mensagem, centro_x - (largura_msg / 2), centro_y - 30, 30, GOLD);
+                                        DrawText(submensagem, centro_x - (largura_sub / 2), centro_y + 20, 20, WHITE);
+                                    EndDrawing();
+                                    
+                                    if (WindowShouldClose()) {
+                                        CloseWindow();
+                                        return 0;
+                                    }
+                                }
+
+                                nivel = 1;
+                                vidas = 3;
+                                pontos = 0;
+                                pellets = 0;
+                                qnt_f = 0;
+                                qnt_portais = 0;
+                                power_up_ativo = false;
+
+                                if (array_fantasmas) free(array_fantasmas);
+                                if (portais) free(portais);
+                                array_fantasmas = NULL;
+                                portais = NULL;
+
+                                
+                                FILE *arquivo_reset = fopen("mapa1.txt", "r");
+                                if (arquivo_reset != NULL) {
+                                    inicializar_mapa(arquivo_reset, &nivel, &array_fantasmas, mapa, &qnt_portais, &qnt_f, &pellets, &pacman, &pos_inicial_pacman, &portais);
+                                   
+                                }
+
+                                for(int x = 0; x < 20; x++){
+                                    for(int y = 0; y < 41; y++){
+                                        controle[x][y] = mapa[x][y];
+                                    }
+                                }
+
+                                venceu = false;
+                                Tela_inicial = true; 
+                                jogo_pausado = false;  
+                                break; 
+                            }else{
+                                inicializar_mapa(arq, &nivel, &array_fantasmas, mapa, &qnt_portais, &qnt_f, &pellets, &pacman, &pos_inicial_pacman, &portais);
+
+                                for(int x = 0; x<20; x++){
+                                    for(int y = 0; y<41; y++){
+                                        controle[x][y] = mapa[x][y];
+                                    }
+                                }
+                                venceu = true;
+                                TempoInicio = GetTime();
+                            }
+                        }
+                }else if (mapa[x][y] == 'o') {
                     mapa[x][y] = ' ';
                     pellets--;
                     power_up_ativo = true;
@@ -787,6 +827,7 @@ int main() {
     return 0;
 
 }
+
 
 
 
