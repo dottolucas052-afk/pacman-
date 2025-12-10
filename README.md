@@ -1,16 +1,9 @@
-Obrigatório:
-
-
-
-- níveis (Ld)
-- Ranking (Quem acabar pega)
----------------------------------------------------------------
-
 Prioridades
 - Spawn fantasmas (Guilherme)
   - morte do pacman (Guilherme)
   - respawn dos fantasmas a partir do segundo nível (Guilherme)
 
+- Ranking (Quem acabar pega)
 
 - portais (Lucas Daniel) - obs(Teleporte dos fantasmas)
 - efeito sonoro (JOao)
