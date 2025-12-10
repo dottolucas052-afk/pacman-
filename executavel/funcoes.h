@@ -336,4 +336,83 @@ void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fa
     return true;
 }
 
+void inicializar_mapa(FILE *arq, int *nivel, tipo_objeto **array_fantasmas, char mapa[20][41], int *qnt_portais, int *qnt_f, int *pellets, tipo_objeto *pacman, tipo_posicao *pos_inicial_pacman, tipo_posicao **portais) {
+    
+    char texto_mapa[20];
+    snprintf(texto_mapa, sizeof(texto_mapa), "mapa%d.txt", *nivel);
+    
+    arq = fopen(texto_mapa, "r");
+    if (arq == NULL) {
+        printf("ERRO: Nao foi possivel abrir %s\n", texto_mapa);
+        return;
+    }
+
+    *qnt_f = 0;
+    *pellets = 0;
+    *qnt_portais = 0;
+
+    if (*array_fantasmas != NULL) free(*array_fantasmas);
+    *array_fantasmas = NULL;
+    
+    if (*portais != NULL) free(*portais);
+    *portais = NULL;
+
+    for (int i = 0; i < 20; i++) {
+        for (int j = 0; j < 40; j++) {
+            
+            int c = fgetc(arq);
+            while (c == '\r' || c == '\n') c = fgetc(arq);
+            if (c == EOF) c = ' ';
+            
+            mapa[i][j] = (char)c;
+
+            if (mapa[i][j] == 'F') {
+                (*qnt_f)++; 
+                tipo_objeto *temp = realloc(*array_fantasmas, (*qnt_f) * sizeof(tipo_objeto));
+                if (temp == NULL) exit(1); 
+                *array_fantasmas = temp;
+
+                int idx = (*qnt_f) - 1;
+                (*array_fantasmas)[idx].tipo = FANTASMA;
+                (*array_fantasmas)[idx].posicao.linha = i;
+                (*array_fantasmas)[idx].posicao.coluna = j;
+                (*array_fantasmas)[idx].direcao_atual = CIMA;
+                (*array_fantasmas)[idx].proxima_direcao = CIMA;
+                (*array_fantasmas)[idx].andar = true;
+                (*array_fantasmas)[idx].teleportado = false;
+                (*array_fantasmas)[idx].velocidade = 7.0f;
+                
+                mapa[i][j] = ' '; 
+            }
+            
+            else if (mapa[i][j] == 'T') {
+                (*qnt_portais)++;
+                
+                tipo_posicao *temp_p = realloc(*portais, (*qnt_portais) * sizeof(tipo_posicao));
+                if (temp_p == NULL) exit(1);
+                *portais = temp_p;
+
+                int idx = (*qnt_portais) - 1;
+                (*portais)[idx].linha = i;
+                (*portais)[idx].coluna = j;
+            }
+            
+            else if (mapa[i][j] == 'P') {
+                pacman->posicao.linha = i;
+                pacman->posicao.coluna = j;
+                pos_inicial_pacman->linha = i;
+                pos_inicial_pacman->coluna = j;
+                pacman->posicao_anterior = pacman->posicao;
+                pacman->andar = false;
+                pacman->teleportado = false;
+            }
+            
+            else if(mapa[i][j] == '.'|| mapa[i][j] == 'o'){
+                (*pellets)++;
+            }
+        }
+        mapa[i][40] = '\0';
+    }
+    fclose(arq);
+}
 
