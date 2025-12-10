@@ -46,6 +46,7 @@ int main() {
     const int LARGURA = 40 * CELULA;
     const int ALTURA = 20 * CELULA;
 
+    InitAudioDevice();
     InitWindow(LARGURA, ALTURA + 40, "Pacman");
     srand(time(NULL));
     SetTargetFPS(60);
@@ -55,6 +56,11 @@ int main() {
     Texture2D textura_pacman = LoadTexture("sprites/pacman.gif");
     Texture2D textura_teleporte = LoadTexture("sprites/teleporte.png");
     Texture2D textura_logo = LoadTexture("sprites/logo.png");
+
+    Sound som_moeda = LoadSound("sons/pacman_chom.wav")
+    Sound som_morte_pacman = LoadSound("sons/pacman_deaths.wav")
+    Sound som_gameover = LoadSound("sons/gameover.wav")
+    Sound som_proximo_nivel = LoadSound("sons/pacman_ringtone.mp3")
 
     double TempoInicio = 0.0;
     double TempoAtual = 0.0;
@@ -245,6 +251,7 @@ int main() {
             ClearBackground(AZUL_NOITE);
             
             if(vidas == 0){
+                PlaySound(som_gameover);
                 ClearBackground(AZUL_MARINHO);
                 int GameOver = MeasureText("Você Perdeu :(", 40);
                 DrawText("Você Perdeu :(", LARGURA/2 - GameOver/2, ALTURA/3, 40, YELLOW);
@@ -445,12 +452,14 @@ int main() {
                         pellets--;
                         mapa[x][y] = ' '; 
                         pontos += 10;
+                        PlaySound(som_moeda);
                     } else if (mapa[x][y] == 'o') {
                         mapa[x][y] = ' ';
                         pellets--;
                         power_up_ativo = true;
                         power_up_timer = TEMPO_POWER_UP;
                         pontos += 50;
+                        PlaySound(som_moeda);
                     }
 
                     // --- CHECAGEM DE VITÓRIA / PRÓXIMO NÍVEL ---
@@ -483,6 +492,7 @@ int main() {
                             inicializar_mapa(arq, &nivel, &array_fantasmas, mapa, controle, &qnt_portais, &qnt_f, &pellets, &pacman, &pos_inicial_pacman, &portais);
                             venceu = true;
                             TempoInicio = GetTime();
+                            PlaySound(som_proximo_nivel);
                         }
                     }
 
@@ -490,6 +500,7 @@ int main() {
                     if (!pacman_morrendo) {
                          verificar_colisao_pacman_fantasma(&pacman, array_fantasmas, qnt_f, power_up_ativo, pos_inicial_pacman, &pontos, v, controle, nivel, &pacman_morrendo);
                          if (pacman_morrendo) timer_morte_pacman = TEMPO_MORTE;
+                        PlaySound(som_morte_pacman); 
                     }
                 }
             }
@@ -525,11 +536,20 @@ int main() {
         }
     }
 
+    UnloadSound(som_moeda);
+    UnloadSound(som_morte_pacman);
+    UnloadSound(som_gameover);
+    UnloadSound(som_proximo_nivel);
+
+    CloseAudioDevice();
     CloseWindow();
     UnloadTexture(textura_teleporte);
     if(array_fantasmas) free(array_fantasmas);
     if(portais) free(portais);
     return 0;
 }
+
+
+
 
 
