@@ -9,7 +9,6 @@
 int main() {
     int nivel = 1;
     FILE *arq = NULL;
-    
     tipo_objeto *array_fantasmas = NULL;
     int qnt_f = 0;
     int pellets = 0;
@@ -288,6 +287,8 @@ int main() {
                     TempoAtual += GetFrameTime();
                 }
                 venceu = false;
+                power_up_ativo = false;
+                power_up_timer = 0;
                 continue;
             }
 
@@ -382,6 +383,8 @@ int main() {
                     pellets = 0;
                     inicializar_mapa(arq, &nivel, &array_fantasmas, mapa, controle, &qnt_portais, &qnt_f, &pellets, &pacman, &pos_inicial_pacman, &portais);
                     jogo_pausado = false;
+                    power_up_ativo = false;
+                    power_up_timer = 0;
                 }
                 if(IsKeyPressed(KEY_S)) {
                     salvar_jogo(mapa, vidas, pontos, nivel, pellets, pacman, array_fantasmas, qnt_f, power_up_ativo, power_up_timer);
@@ -528,4 +531,5 @@ int main() {
     if(portais) free(portais);
     return 0;
 }
+
 
