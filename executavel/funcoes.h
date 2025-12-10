@@ -1,23 +1,21 @@
+#ifndef FUNCOES_H
+#define FUNCOES_H
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
 #include <stdbool.h>
+#include <math.h> 
 #include "raylib.h"
-
-
 
 typedef struct {
     int linha;
     int coluna;
 } tipo_posicao;
 
-
 typedef enum { CIMA, BAIXO, ESQUERDA, DIREITA } direcao;
 
-// ----------------------
-// Estruturas de entidades
-// ----------------------
 typedef enum { PACMAN, FANTASMA } TipoEntidade;
 
 typedef struct {
@@ -29,12 +27,11 @@ typedef struct {
     float velocidade;
     bool andar;
     bool teleportado;
+    bool ativo; 
+    float timer_respawn;
 } tipo_objeto;
 
-
-// ----------------------
-// Definição de funções 
-// ----------------------
+// --- Protótipos ---
 void mover_para(tipo_objeto *personagem, direcao d);
 tipo_posicao verificar(tipo_objeto personagem, direcao d);
 direcao direcao_oposta(direcao d);
@@ -42,11 +39,16 @@ bool colidiu_com_parede(tipo_objeto personagem, direcao d, char mapa[20][41]);
 bool colidiu_com_fantasma(tipo_objeto *personagem, direcao d, tipo_objeto array_fantasmas[], int qnt_f);
 int direcoes_livres_avaliar(tipo_objeto personagem, tipo_objeto array_fantasmas[], int qnt_f, char mapa[20][41], direcao livres[4], bool evitar_reversao);
 void mover_fantasma(tipo_objeto *fantasma, tipo_objeto array_fantasmas[], int qnt_f, char mapa[20][41]);
+tipo_posicao checar_teleporte(tipo_objeto *personagem, tipo_posicao portais[], int qnt_portais);
+void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fantasmas[], int qnt_f, bool power_up_ativo, tipo_posicao pos_inicial_pacman, int *pontos_ptr, int *v, char controle[20][41], int nivel, bool *pacman_morrendo);
+void salvar_jogo(const char mapa[20][41], int vidas, int pontos, int nivel, int pellets, tipo_objeto pacman, tipo_objeto *fantasmas, int qnt_f, bool power_up_ativo, int power_up_timer);
+bool carregar_jogo(char mapa[20][41], int *vidas, int *pontos, int *nivel, int *pellets, tipo_objeto *pacman, tipo_objeto **fantasmas, int *qnt_f, bool *power_up_ativo, int *power_up_timer, const char *nome_arquivo);
 
+// ATUALIZADO: Agora recebe 'controle'
+void inicializar_mapa(FILE *arq, int *nivel, tipo_objeto **array_fantasmas, char mapa[20][41], char controle[20][41], int *qnt_portais, int *qnt_f, int *pellets, tipo_objeto *pacman, tipo_posicao *pos_inicial_pacman, tipo_posicao **portais);
 
-// ----------------------
-// Implementação das funções
-// ----------------------
+// --- Implementações ---
+
 void mover_para(tipo_objeto *personagem, direcao d) {
     switch (d) {
         case CIMA: personagem->posicao.linha--; break;
@@ -56,7 +58,7 @@ void mover_para(tipo_objeto *personagem, direcao d) {
     }
 }
 
-tipo_posicao verificar(tipo_objeto personagem, direcao d) {//função que simula o movimento sem aplicá-lo justamente para verficiar
+tipo_posicao verificar(tipo_objeto personagem, direcao d) {
     tipo_posicao p = personagem.posicao;
     switch (d) {
         case CIMA: p.linha--; break;
@@ -74,12 +76,11 @@ direcao direcao_oposta(direcao d) {
         case ESQUERDA: return DIREITA;
         case DIREITA: return ESQUERDA;
     }
-    return CIMA; // fallback
+    return CIMA; 
 }
 
 bool colidiu_com_parede(tipo_objeto personagem, direcao d, char mapa[20][41]) {
     tipo_posicao p = verificar(personagem, d);
-    // checagem de borda para evitar indexação inválida
     if (p.linha < 0 || p.linha >= 20 || p.coluna < 0 || p.coluna >= 40) return true;
     if (mapa[p.linha][p.coluna]=='#') return true;
     return false;
@@ -88,8 +89,9 @@ bool colidiu_com_parede(tipo_objeto personagem, direcao d, char mapa[20][41]) {
 bool colidiu_com_fantasma(tipo_objeto *personagem, direcao d, tipo_objeto array_fantasmas[], int qnt_f) {
     tipo_posicao p = verificar(*personagem, d);
     for (int i = 0; i < qnt_f; i++) {
+        if (!array_fantasmas[i].ativo) continue;
         if (array_fantasmas[i].posicao.linha == p.linha && array_fantasmas[i].posicao.coluna == p.coluna){
-            if(&array_fantasmas[i]==personagem) continue; // ignora o próprio fantasma
+            if(&array_fantasmas[i]==personagem) continue; 
             return true;
         }
     }
@@ -101,7 +103,6 @@ int direcoes_livres_avaliar(tipo_objeto personagem, tipo_objeto array_fantasmas[
     direcao candidatos[4] = { CIMA, BAIXO, ESQUERDA, DIREITA };
     direcao op = direcao_oposta(personagem.direcao_atual);
 
-// ~~~~ tenta sem permitir reversão (se solicitado) ~~~~//
     for (int i = 0; i < 4; i++) {
         direcao cand = candidatos[i];
         if (evitar_reversao && cand == op) continue;
@@ -109,7 +110,6 @@ int direcoes_livres_avaliar(tipo_objeto personagem, tipo_objeto array_fantasmas[
             livres[total++] = cand;
         }
     }
-    // se pediu para evitar reversao mas não encontrou nada, permite reversao
     if (evitar_reversao && total == 0) {
         for (int i = 0; i < 4; i++) {
             direcao cand = candidatos[i];
@@ -125,37 +125,32 @@ void mover_fantasma(tipo_objeto *fantasma, tipo_objeto array_fantasmas[], int qn
     direcao livres[4];
     int total_livre;
 
- // ~~ 1) tenta proxima_direcao (se diferente da atual) ~~ //
     if (fantasma->proxima_direcao != fantasma->direcao_atual) {
         if (!colidiu_com_parede(*fantasma, fantasma->proxima_direcao, mapa) &&
             !colidiu_com_fantasma(fantasma, fantasma->proxima_direcao, array_fantasmas, qnt_f)) {
-            // muda para proxima e anda
             fantasma->direcao_atual = fantasma->proxima_direcao;
             mover_para(fantasma, fantasma->direcao_atual);
-            // calcula próximas opções reais (evitando reversao se possível)
             total_livre = direcoes_livres_avaliar(*fantasma, array_fantasmas, qnt_f, mapa, livres, true);
             if (total_livre > 0) fantasma->proxima_direcao = livres[rand() % total_livre];
-            else fantasma->proxima_direcao = direcao_oposta(fantasma->direcao_atual); // fallback
+            else fantasma->proxima_direcao = direcao_oposta(fantasma->direcao_atual); 
             return;
         }
     }
-// ~~~~ 2) tenta continuar na direcao_atual ~~~~ //
+
     if (!colidiu_com_parede(*fantasma, fantasma->direcao_atual, mapa) &&
         !colidiu_com_fantasma(fantasma, fantasma->direcao_atual, array_fantasmas, qnt_f)) {
         mover_para(fantasma, fantasma->direcao_atual);
         return;
     }
-// ~~~~ 3) calcula direcoes livres (evitando reversao) ~~~~ //
+
     total_livre = direcoes_livres_avaliar(*fantasma, array_fantasmas, qnt_f, mapa, livres, true);
     if (total_livre > 0) {
         fantasma->direcao_atual = livres[rand() % total_livre];
         mover_para(fantasma, fantasma->direcao_atual);
-        // atualiza proxima_direcao com base nas novas possibilidades
         total_livre = direcoes_livres_avaliar(*fantasma, array_fantasmas, qnt_f, mapa, livres, true);
         if (total_livre > 0) fantasma->proxima_direcao = livres[rand() % total_livre];
         else fantasma->proxima_direcao = direcao_oposta(fantasma->direcao_atual);
     }
-// ~~~~ se não houver direções livres, fica parado ~~~~//
 }
 
 tipo_posicao checar_teleporte(tipo_objeto *personagem, tipo_posicao portais[], int qnt_portais) {
@@ -181,154 +176,140 @@ tipo_posicao checar_teleporte(tipo_objeto *personagem, tipo_posicao portais[], i
             }
         }
     }
-    return personagem->posicao; // Se não estava em nenhum portal, não muda
+    return personagem->posicao; 
 }
 
-void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fantasmas[], int qnt_f, bool power_up_ativo, tipo_posicao pos_inicial_pacman, int *pontos_ptr, int *v) {
-    for(int i = 0; i< qnt_f; i++){
+void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fantasmas[], int qnt_f, bool power_up_ativo, tipo_posicao pos_inicial_pacman, int *pontos_ptr, int *v, char controle[20][41], int nivel, bool *pacman_morrendo) {
+    for(int i = 0; i < qnt_f; i++){
+        
+        if (!array_fantasmas[i].ativo) continue; 
+
         bool colisao = (pacman->posicao.linha == array_fantasmas[i].posicao.linha && pacman->posicao.coluna == array_fantasmas[i].posicao.coluna);
         bool troca = (pacman->posicao_anterior.linha == array_fantasmas[i].posicao.linha && pacman->posicao_anterior.coluna == array_fantasmas[i].posicao.coluna 
         && array_fantasmas[i].posicao_anterior.linha == pacman->posicao.linha && array_fantasmas[i].posicao_anterior.coluna == pacman->posicao.coluna);
-        if(troca||colisao){
+        
+        if(troca || colisao){
              if (power_up_ativo) {
-
-                array_fantasmas[i].posicao.linha = 0;
-                array_fantasmas[i].posicao.coluna = 0;
                 (*pontos_ptr) += 100;
-                //Lógica de pontuação 
-                
+                array_fantasmas[i].ativo = false; 
+                array_fantasmas[i].timer_respawn = 5.0f;
                 
             } else {
-                pacman->posicao = pos_inicial_pacman;
+                *pacman_morrendo = true;
                 (*pontos_ptr) -= 200;
                 if (*pontos_ptr < 0) *pontos_ptr = 0;
-                *(v) -= 1;
-        
-                
             }
         }
-        
     }
-    }
+}
 
+void salvar_jogo(const char mapa[20][41], int vidas, int pontos, int nivel, int pellets, tipo_objeto pacman, tipo_objeto *fantasmas, int qnt_f, bool power_up_ativo, int power_up_timer) {
+    FILE *arq = fopen("saves/save1.txt", "w");
+    if (arq == NULL) {
+        printf("Erro ao salvar jogo.\n");
+        return;
+    }
+    fprintf(arq, "%d %d %d %d %d %d\n", vidas, pontos, nivel, pellets, power_up_ativo, power_up_timer);
+             
+    fprintf(arq, "%d %d %d %d %f %d %d\n", pacman.posicao.linha, pacman.posicao.coluna, pacman.direcao_atual, pacman.proxima_direcao, pacman.velocidade, pacman.andar, pacman.teleportado);
     
-
-    void salvar_jogo(const char mapa[20][41], int vidas, int pontos, int nivel, int pellets,tipo_objeto pacman, tipo_objeto *fantasmas, int qnt_f,bool power_up_ativo, int power_up_timer) {
-        
-
-        FILE *arq = fopen("saves/save1.txt", "w");
-        if (arq == NULL) {
-            printf("Erro ao salvar jogo.\n");
-            return;
-        }
-        fprintf(arq, "%d %d %d %d %d %d\n", vidas, pontos, nivel, pellets, power_up_ativo, power_up_timer);
-                 
-        fprintf(arq, "%d %d %d %d %f %d %d\n", pacman.posicao.linha, pacman.posicao.coluna, pacman.direcao_atual, pacman.proxima_direcao, pacman.velocidade, pacman.andar, pacman.teleportado);
-        
-        fprintf(arq, "%d\n", qnt_f);
-        for (int i = 0; i < qnt_f; i++) {
-            fprintf(arq, "%d %d\n", fantasmas[i].posicao.linha, fantasmas[i].posicao.coluna);
-        }
-
-        fprintf(arq, "\n");
-        for (int j = 0; j < 20; j++) {
-            fprintf(arq, "%s\n", mapa[j]);
-        }
-        
-        fprintf(arq, "\n");
-
-        fclose(arq);
-        printf("JOGO SALVO COM SUCESSO!\n");
-
+    fprintf(arq, "%d\n", qnt_f);
+    for (int i = 0; i < qnt_f; i++) {
+        fprintf(arq, "%d %d %d %f\n", fantasmas[i].posicao.linha, fantasmas[i].posicao.coluna, fantasmas[i].ativo, fantasmas[i].timer_respawn);
     }
 
-    bool carregar_jogo(char mapa[20][41], int *vidas, int *pontos, int *nivel, int *pellets, tipo_objeto *pacman, tipo_objeto **fantasmas, int *qnt_f, bool *power_up_ativo, int *power_up_timer, const char *nome_arquivo) {
+    fprintf(arq, "\n");
+    for (int j = 0; j < 20; j++) {
+        fprintf(arq, "%s\n", mapa[j]);
+    }
+    
+    fprintf(arq, "\n");
+    fclose(arq);
+    printf("JOGO SALVO COM SUCESSO!\n");
+}
 
-        FILE *arq = fopen(nome_arquivo, "r");
-        if (arq == NULL) {
-            printf("ERRO: O arquivo de save '%s' não foi encontrado.\n", nome_arquivo);
-            return false;
-        }
+bool carregar_jogo(char mapa[20][41], int *vidas, int *pontos, int *nivel, int *pellets, tipo_objeto *pacman, tipo_objeto **fantasmas, int *qnt_f, bool *power_up_ativo, int *power_up_timer, const char *nome_arquivo) {
+
+    FILE *arq = fopen(nome_arquivo, "r");
+    if (arq == NULL) {
+        printf("ERRO: O arquivo de save '%s' não foi encontrado.\n", nome_arquivo);
+        return false;
+    }
+    
+    int temp_power_up_ativo;
+    int pacman_direcao_atual, pacman_proxima_direcao;
+    int pacman_andar, pacman_teleportado;
+    
+    if (fscanf(arq, "%d %d %d %d %d %d\n", 
+            vidas, pontos, nivel, pellets, 
+            &temp_power_up_ativo, power_up_timer) != 6) {
+        printf("ERRO: Dados de estado incompletos.\n");
+        fclose(arq);
+        return false;
+    }
+    *power_up_ativo = (bool)temp_power_up_ativo;
+
+    if (fscanf(arq, "%d %d %d %d %f %d %d\n", 
+            &pacman->posicao.linha, &pacman->posicao.coluna, 
+            &pacman_direcao_atual, &pacman_proxima_direcao, 
+            &pacman->velocidade, 
+            &pacman_andar, &pacman_teleportado) != 7) {
+        printf("ERRO: Dados do Pac-Man incompletos.\n");
+        fclose(arq);
+        return false;
+    }
+
+    pacman->direcao_atual = (direcao)pacman_direcao_atual;
+    pacman->proxima_direcao = (direcao)pacman_proxima_direcao;
+    pacman->andar = (bool)pacman_andar;
+    pacman->teleportado = (bool)pacman_teleportado;
+    pacman->posicao_anterior = pacman->posicao; 
+
+    int nova_qnt_f;
+    if (fscanf(arq, "%d\n", &nova_qnt_f) != 1) {
+        printf("ERRO: Quantidade de fantasmas incompleta.\n");
+        fclose(arq);
+        return false;
+    }
+    
+    if (*fantasmas != NULL) free(*fantasmas);
+    *qnt_f = nova_qnt_f;
+    if (*qnt_f > 0) {
+        *fantasmas = (tipo_objeto*)malloc(*qnt_f * sizeof(tipo_objeto));
+    } else {
+        *fantasmas = NULL;
+    }
+
+    for (int i = 0; i < *qnt_f; i++) {
+        int ativo_temp = 1;
+        float timer_temp = 0.0f;
+        int lidos = fscanf(arq, "%d %d %d %f\n", &(*fantasmas)[i].posicao.linha, &(*fantasmas)[i].posicao.coluna, &ativo_temp, &timer_temp);
         
-        int temp_power_up_ativo;
-        int pacman_direcao_atual, pacman_proxima_direcao;
-        int pacman_andar, pacman_teleportado;
-        
-        if (fscanf(arq, "%d %d %d %d %d %d\n", 
-                vidas, pontos, nivel, pellets, 
-                &temp_power_up_ativo, power_up_timer) != 6) {
-            printf("ERRO: Dados de estado (pontuação/vidas/nível) incompletos.\n");
-            fclose(arq);
-            return false;
-        }
-        *power_up_ativo = (bool)temp_power_up_ativo;
-
-        if (fscanf(arq, "%d %d %d %d %f %d %d\n", 
-                &pacman->posicao.linha, &pacman->posicao.coluna, 
-                &pacman_direcao_atual, &pacman_proxima_direcao, 
-                &pacman->velocidade, 
-                &pacman_andar, &pacman_teleportado) != 7) {
-            printf("ERRO: Dados do Pac-Man incompletos.\n");
-            fclose(arq);
-            return false;
+        if (lidos < 2) {
+             printf("ERRO: Posição do fantasma %d incompleta.\n", i);
+             fclose(arq);
+             return false;
         }
 
-        pacman->direcao_atual = (direcao)pacman_direcao_atual;
-        pacman->proxima_direcao = (direcao)pacman_proxima_direcao;
-        pacman->andar = (bool)pacman_andar;
-        pacman->teleportado = (bool)pacman_teleportado;
-        pacman->posicao_anterior = pacman->posicao; 
+        (*fantasmas)[i].ativo = (bool)ativo_temp;
+        (*fantasmas)[i].timer_respawn = timer_temp;
+        (*fantasmas)[i].posicao_anterior = (*fantasmas)[i].posicao;
+        (*fantasmas)[i].tipo = FANTASMA;
+        (*fantasmas)[i].velocidade = 7.0f; 
+        (*fantasmas)[i].andar = true; 
+        (*fantasmas)[i].teleportado = false;
+        (*fantasmas)[i].direcao_atual = CIMA; 
+        (*fantasmas)[i].proxima_direcao = CIMA;
+    }
 
-        int nova_qnt_f;
-        if (fscanf(arq, "%d\n", &nova_qnt_f) != 1) {
-            printf("ERRO: Quantidade de fantasmas incompleta.\n");
-            fclose(arq);
-            return false;
-        }
-        
-        if (*fantasmas != NULL) free(*fantasmas);
-        *qnt_f = nova_qnt_f;
-        if (*qnt_f > 0) {
-            *fantasmas = (tipo_objeto*)malloc(*qnt_f * sizeof(tipo_objeto));
-        } else {
-            *fantasmas = NULL;
-        }
-
-        for (int i = 0; i < *qnt_f; i++) {
-
-            if (fscanf(arq, "%d %d\n", &(*fantasmas)[i].posicao.linha, &(*fantasmas)[i].posicao.coluna) != 2) {
-                printf("ERRO: Posição do fantasma %d incompleta.\n", i);
-                fclose(arq);
-                return false;
-            }
-
-            (*fantasmas)[i].posicao_anterior = (*fantasmas)[i].posicao;
-            (*fantasmas)[i].tipo = FANTASMA;
-            (*fantasmas)[i].velocidade = 7.0f; 
-            (*fantasmas)[i].andar = true; 
-            (*fantasmas)[i].teleportado = false;
-            (*fantasmas)[i].direcao_atual = CIMA; 
-            (*fantasmas)[i].proxima_direcao = CIMA;
-        }
-
-        for (int i = 0; i < 20; i++) {
-        
-        // 1. Tenta ler a linha (40 caracteres)
+    for (int i = 0; i < 20; i++) {
         if (fgets(mapa[i], 41, arq) == NULL) {
              printf("ERRO: Leitura do mapa incompleta na linha %d.\n", i);
              fclose(arq);
              return false;
         }
-        
-        // 2. Garante que a string está terminada (o que é feito pelo fgets no índice 40)
         mapa[i][40] = '\0'; 
-
-        // 3. DESCARGA O CARACTERE DE QUEBRA DE LINHA (\n) que sobrou no buffer.
-        // Isso garante que o próximo fgets comece a ler a linha seguinte do mapa.
-        if (fgetc(arq) != '\n') {
-            // Se cair aqui, a estrutura do seu arquivo de save está incorreta (linha de mapa não terminou em \n)
-            printf("AVISO: Estrutura do arquivo de save inesperada após a linha %d do mapa.\n", i);
-        }
+        if (fgetc(arq) != '\n') { }
     }
     
     fclose(arq);
@@ -336,7 +317,8 @@ void verificar_colisao_pacman_fantasma(tipo_objeto *pacman, tipo_objeto array_fa
     return true;
 }
 
-void inicializar_mapa(FILE *arq, int *nivel, tipo_objeto **array_fantasmas, char mapa[20][41], int *qnt_portais, int *qnt_f, int *pellets, tipo_objeto *pacman, tipo_posicao *pos_inicial_pacman, tipo_posicao **portais) {
+// CORREÇÃO: Recebe 'controle' e salva os dados lá antes de limpar o 'mapa'
+void inicializar_mapa(FILE *arq, int *nivel, tipo_objeto **array_fantasmas, char mapa[20][41], char controle[20][41], int *qnt_portais, int *qnt_f, int *pellets, tipo_objeto *pacman, tipo_posicao *pos_inicial_pacman, tipo_posicao **portais) {
     
     char texto_mapa[20];
     snprintf(texto_mapa, sizeof(texto_mapa), "mapa%d.txt", *nivel);
@@ -365,6 +347,8 @@ void inicializar_mapa(FILE *arq, int *nivel, tipo_objeto **array_fantasmas, char
             if (c == EOF) c = ' ';
             
             mapa[i][j] = (char)c;
+            // Salva na matriz de controle IMEDIATAMENTE, antes de apagar
+            controle[i][j] = (char)c;
 
             if (mapa[i][j] == 'F') {
                 (*qnt_f)++; 
@@ -381,6 +365,9 @@ void inicializar_mapa(FILE *arq, int *nivel, tipo_objeto **array_fantasmas, char
                 (*array_fantasmas)[idx].andar = true;
                 (*array_fantasmas)[idx].teleportado = false;
                 (*array_fantasmas)[idx].velocidade = 7.0f;
+                (*array_fantasmas)[idx].ativo = true;
+                (*array_fantasmas)[idx].timer_respawn = 0.0f;
+                (*array_fantasmas)[idx].posicao_anterior = (*array_fantasmas)[idx].posicao;
                 
                 mapa[i][j] = ' '; 
             }
@@ -412,7 +399,10 @@ void inicializar_mapa(FILE *arq, int *nivel, tipo_objeto **array_fantasmas, char
             }
         }
         mapa[i][40] = '\0';
+        controle[i][40] = '\0';
     }
     fclose(arq);
 }
+
+#endif
 
