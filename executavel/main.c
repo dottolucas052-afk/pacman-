@@ -338,7 +338,7 @@ int main() {
                         case '.': DrawCircle(px + CELULA/2 , py + CELULA/2 , 3, YELLOW); break;
                         case 'o': DrawCircle(px + CELULA/2 , py + CELULA/2 , 6, GREEN); break;
                         case 'T': DrawTexturePro(textura_teleporte, (Rectangle){ 0.0f, 0.0f, (float)textura_teleporte.width, (float)textura_teleporte.height }, (Rectangle){ (float)px, (float)py, (float)CELULA, (float)CELULA }, (Vector2){ 0, 0 }, 0.0f, WHITE); break;
-                        case 'a': DrawTexturePro (textura_fruta, (Rectangle){ 0.0f, 0.0f, (float)textura_teleporte.width, (float)textura_teleporte.height }, (Rectangle){ (float)px, (float)py, (float)CELULA, (float)CELULA }, (Vector2){ 0, 0 }, 0.0f, WHITE); break;
+                        case 'a': DrawTexturePro (textura_fruta, (Rectangle){ 0.0f, 0.0f, (float)textura_fruta.width, (float)textura_fruta.height }, (Rectangle){ (float)px, (float)py, (float)CELULA, (float)CELULA }, (Vector2){ 0, 0 }, 0.0f, WHITE); break;
                     }
                 }
             }
