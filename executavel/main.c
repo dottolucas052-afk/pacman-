@@ -84,7 +84,7 @@ int main() {
     bool Tela_inicial = true;
     int novo = MeasureText("Pressione ENTER para iniciar", 20);
     int carregar = MeasureText("Pressione C para carregar jogo salvo", 20);
-    int opcoes = MeasureText("Pressione O para opções", 20);
+    int ranking = MeasureText("Pressione T para ver o ranking", 20);
     int sair = MeasureText("Pressione ESC para sair", 20);
 
     const int LOGO_LARGURA_DESEJADA = 300;
@@ -107,7 +107,7 @@ int main() {
                 DrawText("Pressione C para carregar jogo salvo", (LARGURA - carregar)/2, 240-20, 20, WHITE);
 
                 DrawRectangle((LARGURA - carregar)/2-20, 280 - 10, carregar +40, 40, Fade(GOLD, 0.5f));
-                DrawText("Pressione O para opções", (LARGURA - opcoes)/2, 280, 20, WHITE);
+                DrawText("Pressione T para ver o ranking", (LARGURA - ranking)/2, 280, 20, WHITE);
 
                 DrawRectangle((LARGURA - carregar)/2-20, 320 + 10, carregar +40, 40, Fade(GOLD, 0.5f));
                 DrawText("Pressione ESC para sair", (LARGURA - sair)/2, 320+20, 20, WHITE);
