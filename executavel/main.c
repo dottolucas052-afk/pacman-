@@ -58,6 +58,7 @@ int main() {
     Texture2D textura_pacman = LoadTexture("sprites/pacman.gif");
     Texture2D textura_teleporte = LoadTexture("sprites/teleporte.png");
     Texture2D textura_logo = LoadTexture("sprites/logo.png");
+    Texture2D textura_fruta = LoadTexture("sprites/fruta.png");
     Sound som_moeda = LoadSound("sons/pacman_chomp.wav");
     Sound som_morte_pacman = LoadSound("sons/pacman_death.wav");
     Sound som_gameover = LoadSound("sons/pacman_death.wav");
@@ -337,6 +338,7 @@ int main() {
                         case '.': DrawCircle(px + CELULA/2 , py + CELULA/2 , 3, YELLOW); break;
                         case 'o': DrawCircle(px + CELULA/2 , py + CELULA/2 , 6, GREEN); break;
                         case 'T': DrawTexturePro(textura_teleporte, (Rectangle){ 0.0f, 0.0f, (float)textura_teleporte.width, (float)textura_teleporte.height }, (Rectangle){ (float)px, (float)py, (float)CELULA, (float)CELULA }, (Vector2){ 0, 0 }, 0.0f, WHITE); break;
+                        case 'a': DrawTexturePro (textura_fruta, (Rectangle){ 0.0f, 0.0f, (float)textura_teleporte.width, (float)textura_teleporte.height }, (Rectangle){ (float)px, (float)py, (float)CELULA, (float)CELULA }, (Vector2){ 0, 0 }, 0.0f, WHITE); break;
                     }
                 }
             }
@@ -430,14 +432,12 @@ int main() {
                         jogo_pausado = false; 
                         contador_fantasmas = 0.0f; 
                         contador_pacman = 0.0f;
-                         for(int x = 0; x < 20; x++){
+                         for(int x = 0; x < 20; x++)
                             for(int y = 0; y < 41; y++){
                                 controle[x][y] = mapa[x][y];
                             }
-                        }
-                    } else {
-                        printf("Falha ao carregar o jogo do arquivo: %s\n", nome_arquivo_para_carregar);
-                    }
+                    } else printf("Falha ao carregar o jogo do arquivo: %s\n", nome_arquivo_para_carregar);
+                    
                 }
                 if (IsKeyPressed(KEY_Q)) {
                     vidas = 3;
@@ -487,8 +487,11 @@ int main() {
                         power_up_timer = TEMPO_POWER_UP;
                         pontos += 50;
                         PlaySound(som_moeda);
+                    } else if (mapa [x][y] == 'a'){
+                        mapa [x][y] = ' ';
+                        pontos += 300;
+                        PlaySound (som_moeda);
                     }
-
                     // --- CHECAGEM DE VITÓRIA / PRÓXIMO NÍVEL ---
                     // Agora está fora dos blocos de colisão individuais!
                     if((pellets == 0 && !venceu) || IsKeyPressed(KEY_K)){
@@ -560,6 +563,35 @@ int main() {
                         }
                     }
             }
+            
+            if(!jogo_pausado){
+                static tipo_posicao posicao_fruta;
+                
+                const float INTERVALO_FRUTA = 10.0f; 
+                static bool fruta_ativa = false;    
+                
+                static time_t ultimo_evento = 0;
+
+                if (ultimo_evento == 0) ultimo_evento = time(NULL);   // marca o início
+                
+                time_t agora = time(NULL);
+
+                // verifica se já se passaram INTERVALO_FRUTA segundos
+                if (!fruta_ativa){
+                    if (agora - ultimo_evento >= INTERVALO_FRUTA) {
+                        posicao_fruta = adicionar_fruta(mapa);
+                        if (posicao_fruta.linha >= 0) {
+                            fruta_ativa = true;
+                            ultimo_evento = agora; // reinicia o relógio
+                        }
+                    }
+                } else if (agora - ultimo_evento >= INTERVALO_FRUTA) {
+                        mapa[posicao_fruta.linha][posicao_fruta.coluna] = ' ';
+                        fruta_ativa = false;
+                        ultimo_evento = agora; // reinicia o relógio
+                    }
+                
+            }
         }
     }
 
@@ -575,8 +607,6 @@ int main() {
     if(portais) free(portais);
     return 0;
 }
-
-
 
 
 
