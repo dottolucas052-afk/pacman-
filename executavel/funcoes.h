@@ -405,6 +405,37 @@ void inicializar_mapa(FILE *arq, int *nivel, tipo_objeto **array_fantasmas, char
     fclose(arq);
 }
 
+tipo_posicao* coletar_posicoes(char mapa[20][41], int *quantidade) {
+    *quantidade = 0;
+    tipo_posicao *lista = NULL;
+    for (int i = 0; i < 20; i++) {
+        for (int j = 0; j < 40; j++) {
+            if (mapa[i][j] == ' ') {
+                (*quantidade)++;
+                lista = realloc(lista, (*quantidade) * sizeof(tipo_posicao));
+                lista[*quantidade - 1].linha = i;
+                lista[*quantidade - 1].coluna = j;
+            }
+        }
+    }
+    return lista;
+}
+
+tipo_posicao adicionar_fruta(char mapa[20][41]) {
+    int total;
+    tipo_posicao *lista = coletar_posicoes(mapa, &total);
+    if (total == 0) {
+        free(lista);
+        return (tipo_posicao){ -1, -1 };
+    }
+    int idx = rand() % total;
+    tipo_posicao p = lista[idx];   // salva a posição antes do free
+    mapa[p.linha][p.coluna] = 'a';
+    free(lista);
+    return p;                      // retorna a posição salva
+}
+
 #endif
+
 
 
