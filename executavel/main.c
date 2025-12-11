@@ -59,10 +59,13 @@ int main() {
     Texture2D textura_teleporte = LoadTexture("sprites/teleporte.png");
     Texture2D textura_logo = LoadTexture("sprites/logo.png");
     Texture2D textura_fruta = LoadTexture("sprites/fruta.png");
-    Sound som_moeda = LoadSound("sons/pacman_chomp.wav");
+    Sound som_moeda = LoadSound("sons/mario-coin-sound-effect (mp3cut.net).mp3");
     Sound som_morte_pacman = LoadSound("sons/pacman_death.wav");
     Sound som_gameover = LoadSound("sons/pacman_death.wav");
     Sound som_proximo_nivel = LoadSound("sons/pacman_ringtone.mp3");
+    Music musica_jogo = LoadMusicStream("sons/musica.mp3");    
+
+    SetMusicVolume(musica_jogo, 0.3f);
 
     double TempoInicio = 0.0;
     double TempoAtual = 0.0;
@@ -167,8 +170,10 @@ int main() {
         }
 
         // ~~~~ 5) Loop principal ~~~~ //
-        while (!WindowShouldClose()) {
+        PlayMusicStream(musica_jogo);
 
+        while (!WindowShouldClose()) {
+            UpdateMusicStream(musica_jogo);
             if (IsKeyPressed(KEY_TAB)) {
                 jogo_pausado = true;
             }
@@ -607,6 +612,7 @@ int main() {
     if(portais) free(portais);
     return 0;
 }
+
 
 
 
