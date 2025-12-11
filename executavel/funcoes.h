@@ -125,19 +125,26 @@ int direcoes_livres_avaliar(tipo_objeto personagem, tipo_objeto array_fantasmas[
 void mover_fantasma(tipo_objeto *fantasma, tipo_objeto array_fantasmas[], int qnt_f, char mapa[20][41]) {
     direcao livres[4];
     int total_livre;
-
-    if (fantasma->proxima_direcao != fantasma->direcao_atual) {
-        if (!colidiu_com_parede(*fantasma, fantasma->proxima_direcao, mapa) &&
-            !colidiu_com_fantasma(fantasma, fantasma->proxima_direcao, array_fantasmas, qnt_f)) {
-            fantasma->direcao_atual = fantasma->proxima_direcao;
-            mover_para(fantasma, fantasma->direcao_atual);
-            total_livre = direcoes_livres_avaliar(*fantasma, array_fantasmas, qnt_f, mapa, livres, true);
-            if (total_livre > 0) fantasma->proxima_direcao = livres[rand() % total_livre];
-            else fantasma->proxima_direcao = direcao_oposta(fantasma->direcao_atual); 
-            return;
+    
+    if(fantasma->teleportado){
+        total_livre = direcoes_livres_avaliar(*fantasma, array_fantasmas, qnt_f, mapa, livres, false);
+        fantasma->direcao_atual = livres[rand() % total_livre];
+        mover_para(fantasma, fantasma->direcao_atual);
+        return;    
+    }
+    
+    if(rand()%100<10){
+        switch(fantasma->direcao_atual){
+            case CIMA: 
+            case BAIXO: rand()%2==0 ? (fantasma->proxima_direcao=ESQUERDA) : (fantasma->proxima_direcao=DIREITA); break;
+            case ESQUERDA: 
+            case DIREITA: rand()%2==0 ? (fantasma->proxima_direcao=CIMA) : (fantasma->proxima_direcao=BAIXO); break;
         }
     }
 
+    if (!colidiu_com_parede(*fantasma, fantasma->proxima_direcao, mapa) &&
+            !colidiu_com_fantasma(fantasma, fantasma->proxima_direcao, array_fantasmas, qnt_f)) {
+            fantasma->direcao_atual = fantasma->proxima_direcao;}
     if (!colidiu_com_parede(*fantasma, fantasma->direcao_atual, mapa) &&
         !colidiu_com_fantasma(fantasma, fantasma->direcao_atual, array_fantasmas, qnt_f)) {
         mover_para(fantasma, fantasma->direcao_atual);
@@ -152,12 +159,13 @@ void mover_fantasma(tipo_objeto *fantasma, tipo_objeto array_fantasmas[], int qn
         if (total_livre > 0) fantasma->proxima_direcao = livres[rand() % total_livre];
         else fantasma->proxima_direcao = direcao_oposta(fantasma->direcao_atual);
     }
+    return;
 }
 
 tipo_posicao checar_teleporte(tipo_objeto *personagem, tipo_posicao portais[], int qnt_portais) {
     for (int i = 0; i < qnt_portais; i++) {
         if (personagem->posicao.linha == portais[i].linha && personagem->posicao.coluna == portais[i].coluna && personagem->teleportado == false) {
-            if (portais[i].coluna<=2||portais[i].coluna>=37){
+            if (portais[i].coluna<=1||portais[i].coluna>=38){
                 for (int j =0; j<qnt_portais; j++){
                     if (i != j && portais[i].linha == portais[j].linha){
                         personagem->posicao = portais[j];
@@ -166,7 +174,7 @@ tipo_posicao checar_teleporte(tipo_objeto *personagem, tipo_posicao portais[], i
                     }
                 }         
             }
-            if (portais[i].linha<=2||portais[i].linha>=17){
+            if (portais[i].linha<=1||portais[i].linha>=18){
                 for (int j =0; j<qnt_portais; j++){
                     if (i != j && portais[i].coluna == portais[j].coluna){
                         personagem->posicao = portais[j];
@@ -436,6 +444,5 @@ tipo_posicao adicionar_fruta(char mapa[20][41]) {
 }
 
 #endif
-
 
 
