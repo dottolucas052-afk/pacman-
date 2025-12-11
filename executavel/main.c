@@ -559,7 +559,7 @@ int main() {
                         if (!array_fantasmas[i].ativo) continue;
                         if (!pacman_morrendo) {
                             mover_fantasma(&array_fantasmas[i], array_fantasmas, qnt_f, mapa);
-                            checar_teleporte(&array_fantasmas[i], portais, qnt_portais);
+                            if(!array_fantasmas[i].teleportado)checar_teleporte(&array_fantasmas[i], portais, qnt_portais);
                         }
                     }
             }
@@ -607,7 +607,6 @@ int main() {
     if(portais) free(portais);
     return 0;
 }
-
 
 
 
