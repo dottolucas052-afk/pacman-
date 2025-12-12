@@ -63,9 +63,6 @@ int main() {
     Sound som_morte_pacman = LoadSound("sons/pacman_death.wav");
     Sound som_gameover = LoadSound("sons/pacman_death.wav");
     Sound som_proximo_nivel = LoadSound("sons/pacman_ringtone.mp3");
-    Music musica_jogo = LoadMusicStream("sons/musica.mp3");    
-
-    SetMusicVolume(musica_jogo, 0.3f);
 
     double TempoInicio = 0.0;
     double TempoAtual = 0.0;
@@ -87,7 +84,7 @@ int main() {
     bool Tela_inicial = true;
     int novo = MeasureText("Pressione ENTER para iniciar", 20);
     int carregar = MeasureText("Pressione C para carregar jogo salvo", 20);
-    int ranking = MeasureText("Pressione T para ver o ranking", 20);
+    //int ranking = MeasureText("Pressione T para ver o ranking", 20);
     int sair = MeasureText("Pressione ESC para sair", 20);
 
     const int LOGO_LARGURA_DESEJADA = 300;
@@ -110,11 +107,12 @@ int main() {
                 DrawText("Pressione C para carregar jogo salvo", (LARGURA - carregar)/2, 240-20, 20, WHITE);
 
                 DrawRectangle((LARGURA - carregar)/2-20, 280 - 10, carregar +40, 40, Fade(GOLD, 0.5f));
-                DrawText("Pressione T para ver o ranking", (LARGURA - ranking)/2, 280, 20, WHITE);
-
+                DrawText("Pressione ESC para sair", (LARGURA - sair)/2, 280, 20, WHITE);
+                /*
                 DrawRectangle((LARGURA - carregar)/2-20, 320 + 10, carregar +40, 40, Fade(GOLD, 0.5f));
-                DrawText("Pressione ESC para sair", (LARGURA - sair)/2, 320+20, 20, WHITE);
-            EndDrawing();
+                DrawText("Pressione T para ver o ranking", (LARGURA - ranking)/2, 320+20, 20, WHITE);
+                */
+                EndDrawing();
 
             if (IsKeyPressed(KEY_ENTER)) {
                 Tela_inicial = false;
@@ -170,13 +168,12 @@ int main() {
         }
 
         // ~~~~ 5) Loop principal ~~~~ //
-        PlayMusicStream(musica_jogo);
-
         while (!WindowShouldClose()) {
-            UpdateMusicStream(musica_jogo);
+            /*
             if (IsKeyPressed(KEY_TAB)) {
                 jogo_pausado = true;
             }
+            */
             if(IsKeyPressed(KEY_V)){
                 jogo_pausado = false;
             }
@@ -564,7 +561,7 @@ int main() {
                         if (!array_fantasmas[i].ativo) continue;
                         if (!pacman_morrendo) {
                             mover_fantasma(&array_fantasmas[i], array_fantasmas, qnt_f, mapa);
-                            if(!array_fantasmas[i].teleportado)checar_teleporte(&array_fantasmas[i], portais, qnt_portais);
+                            checar_teleporte(&array_fantasmas[i], portais, qnt_portais);
                         }
                     }
             }
